@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 
-void showFlashBar(BuildContext context, {
-  required String message,
-  bool isError = false,
-}) {
+void showFlashbar(BuildContext context, String message, bool isSuccess) {
+  ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(message,style: TextStyle(color: Colors.black),),
-      backgroundColor: isError ? Colors.red : Colors.green,
       behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+      backgroundColor: isSuccess ? Colors.green.shade700 : Colors.red.shade700,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      content: Row(
+        children: [
+          Icon(
+            isSuccess ? Icons.check_circle_outline : Icons.error_outline,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
-
-      duration: Duration(seconds: 3),
     ),
   );
 }

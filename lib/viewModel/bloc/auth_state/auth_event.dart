@@ -24,6 +24,14 @@ class NameChanged extends AuthEvent {
   List<Object?> get props => [name];
 }
 
+class OccupationChanged extends AuthEvent {
+  String occupation;
+  OccupationChanged({required this.occupation});
+
+  @override
+  List<Object?> get props => [occupation];
+}
+
 class EmailChanged extends AuthEvent {
   String email;
   EmailChanged({required this.email});
@@ -39,3 +47,5 @@ class PasswordChanged extends AuthEvent {
   @override
   List<Object?> get props => [password];
 }
+
+class ClearAuthFields extends AuthEvent {}

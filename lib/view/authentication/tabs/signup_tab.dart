@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../config/flash_bar/flash_bar.dart';
 import '../../../viewModel/bloc/auth_state/auth_bloc.dart';
 import '../../../viewModel/bloc/obscure_text/obscure_text_bloc.dart';
 
@@ -13,113 +14,183 @@ class SignupTab extends StatefulWidget {
 
 class _SignupTabState extends State<SignupTab> {
 
-  final FocusNode _emailFocusNode = FocusNode();
-  final FocusNode _passwordFocusNode = FocusNode();
-  final FocusNode _nameFocusNode = FocusNode();
+  final _formKey = GlobalKey<FormState>();
+
+  final List<FocusNode> nodes = [
+    FocusNode(), // Name: 0
+    FocusNode(), // Occupation: 1
+    FocusNode(), // Email: 2
+    FocusNode(), // Password: 3
+  ];
+
+  final List<TextInputType> inputTypes = [
+    TextInputType.text,
+    TextInputType.text,
+    TextInputType.emailAddress,
+    TextInputType.text,
+  ];
+
+  final List<TextCapitalization> capitalizations = [
+    TextCapitalization.words,
+    TextCapitalization.words,
+    TextCapitalization.none,
+    TextCapitalization.none,
+  ];
+
+  final List<String> labels = [
+    'Name',
+    'Occupation',
+    'Email',
+    'Password',
+  ];
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Email is required.';
+    }
+    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Please enter a valid email address.';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required.';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters.';
+    }
+    return null;
+  }
+
+  String? _validatorForIndex(int index, String? value) {
+    switch (index) {
+      case 2: return _validateEmail(value);
+      case 3: return _validatePassword(value);
+      default: return null;
+    }
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(nodes[0]);
+    });
+  }
 
   @override
   void dispose() {
-    _emailFocusNode.dispose();
-    _passwordFocusNode.dispose();
-
+    for (final node in nodes) node.dispose();
     super.dispose();
+  }
+
+  AuthEvent _eventForIndex(int index, String value) {
+    switch (index) {
+      case 0: return NameChanged(name: value);
+      case 1: return OccupationChanged(occupation: value);
+      case 2: return EmailChanged(email: value);
+      case 3: return PasswordChanged(password: value);
+      default: throw RangeError('Index $index out of range');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                return TextFormField(
-                  keyboardType: TextInputType.text,
-                  focusNode: _nameFocusNode,
-                  decoration: InputDecoration(
-                    hint: Text('Name'),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (newValue) {
-                    context.read<AuthBloc>().add(NameChanged(name: newValue));
-                  },
-                  onFieldSubmitted: (value) {},
-                );
-              }
-          ),
+    return BlocListener<AuthBloc, AuthState>(
 
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                focusNode: _emailFocusNode,
-                decoration: InputDecoration(
-                  hint: Text('Email'),
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (newValue) {
-                  context.read<AuthBloc>().add(EmailChanged(email: newValue));
-                },
-                onFieldSubmitted: (value) {},
-              );
-            }
-          ),
+      listenWhen: (previous, current) =>
+      previous.currentState == AuthStates.Loading &&
+          current.currentState != AuthStates.Loading,
+      listener: (context, state) {
+        final isSuccess = state.currentState == AuthStates.Authenticated;
+        final message =
+        (state.message?.isNotEmpty ?? false) ? state.message! : (isSuccess ? 'Sign up successful!' : 'Sign up failed.');
+        showFlashbar(context, message, isSuccess);
+      },
+      child: Center(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: nodes.length,
+                itemBuilder: (context, index) {
+                  final isPassword = labels[index] == 'Password';
+                  return BlocBuilder<ObscureTextBloc, ObscureTextState>(
+                    buildWhen: (previous, current) =>
+                    isPassword && previous.obscureText != current.obscureText,
+                    builder: (context, obscureState) {
+                      return TextFormField(
+                        keyboardType: inputTypes[index],
+                        focusNode: nodes[index],
+                        textCapitalization: capitalizations[index],
+                        obscureText: isPassword ? obscureState.obscureText : false,
+                        // Validate on user interaction
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: (value) => _validatorForIndex(index, value),
 
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return BlocBuilder<ObscureTextBloc,ObscureTextState>(
-                builder: (context, state2) {
-                  return TextFormField(
-                    keyboardType: TextInputType.text,
-                    focusNode: _passwordFocusNode,
-                    obscureText: state2.obscureText,
-                    decoration: InputDecoration(
-                      hint: Text('Password'),
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          state2.obscureText ? Icons.visibility_off : Icons.visibility,
+                        decoration: InputDecoration(
+                          hintText: labels[index],
+                          border: const OutlineInputBorder(),
+                          suffixIcon: isPassword
+                              ? IconButton(
+                            icon: Icon(
+                              obscureState.obscureText
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () => context
+                                .read<ObscureTextBloc>()
+                                .add(ToggleObscure()),
+                          )
+                              : null,
                         ),
-                        onPressed: () {
-                          context.read<ObscureTextBloc>().add(ToggleObscure());
+                        onChanged: (newValue) => context
+                            .read<AuthBloc>()
+                            .add(_eventForIndex(index, newValue)),
+                        onFieldSubmitted: (_) {
+                          if (index == nodes.length - 1) {
+                            FocusScope.of(context).unfocus();
+                          } else {
+                            FocusScope.of(context).requestFocus(nodes[index + 1]);
+                          }
                         },
-                      ),
-                    ),
-                    onChanged: (newValue) {
-                      context.read<AuthBloc>().add(PasswordChanged(password: newValue));
+                      );
                     },
-                    onFieldSubmitted: (value) {},
                   );
-                }
-              );
-            }
-          ),
+                },
+              ),
 
-          BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                return ElevatedButton(onPressed: () async {
-                  print(state.userModel.name);
-                  print('Name' + state.userModel.email);
-                  print(state.userModel.password);
-                }, child: Text('Check'));
-              }
+              BlocBuilder<AuthBloc, AuthState>(
+                buildWhen: (previous, current) =>
+                previous.currentState != current.currentState,
+                builder: (context, state) {
+                  final isLoading = state.currentState == AuthStates.Loading;
+                  return ElevatedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                      if (!_formKey.currentState!.validate()) return;
+                      context.read<AuthBloc>().add(AuthSignUp());
+                    },
+                    child: isLoading
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                        : const Text('Sign Up'),
+                  );
+                },
+              ),
+            ],
           ),
-
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return ElevatedButton(onPressed: () async {
-                context.read<AuthBloc>().add(AuthSignUp());
-              }, child: Text('Sign Up'));
-            }
-          ),
-
-          BlocBuilder<AuthBloc, AuthState>(
-            buildWhen: (previous, current) => previous.message != current.message,
-              builder: (context, state) {
-                return Text(state.message.toString());
-              }
-          ),
-
-        ],
+        ),
       ),
     );
   }

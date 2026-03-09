@@ -10,3 +10,5 @@ abstract class ObscureTextEvent extends Equatable {
 }
 
 class ToggleObscure extends ObscureTextEvent{}
+
+class ClearObscureFiled extends ObscureTextEvent{}

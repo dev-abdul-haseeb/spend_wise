@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
 import 'package:spend_wise/model/user/user_model.dart';
 import 'package:spend_wise/repository/auth_repository/auth_repository.dart';
+import 'package:spend_wise/repository/user_repository/user_repository.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -10,16 +11,20 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthRepository authRepository = AuthRepository();
+  UserRepository userRepository = UserRepository();
 
 
   AuthBloc() : super(AuthState()) {
     on<AuthCheckRequested>(_checkAuthRequest);
     on<AuthLogOut>(_logOutUser);
     on<AuthSignUp>(_signUpUser);
+    on<AuthLogin>(_loginUser);
 
     on<NameChanged>(_nameChanged);
+    on<OccupationChanged>(_occupationChanged);
     on<EmailChanged>(_emailChanged);
     on<PasswordChanged>(_passwordChanged);
+    on<ClearAuthFields>(_clearFields);
 
 
     add(AuthCheckRequested());
@@ -34,7 +39,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _logOutUser (AuthLogOut event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(newState: AuthStates.Loading));
+    emit(state.copyWith(newState: AuthStates.Loading, newMessage: 'Logging out'));
     await authRepository.logOutUser();
     emit(state.copyWith(newState: AuthStates.Unauthenticated, newModel: UserModel(), newMessage: ''));
 
@@ -42,14 +47,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _signUpUser (AuthSignUp event, Emitter<AuthState> emit) async {
 
-    emit(state.copyWith(newState: AuthStates.Loading));
+    emit(state.copyWith(newState: AuthStates.Loading, newMessage: 'Signing up...'));
     final (newModel, message, newState) = await authRepository.signUpUser(state.userModel.email, state.userModel.password);
-    emit(state.copyWith(newModel: newModel, newMessage: message, newState: newState));
+    if(newModel == null) {
+      emit(state.copyWith(newMessage: message, newState: newState));
+    }
+    else {
+      final updatedModel = newModel.copyWith(
+        newName: state.userModel.name,
+        newOccupation: state.userModel.occupation,
+        newPassword: state.userModel.password,
+      );
+      userRepository.createUserInDb(updatedModel.uid, updatedModel.name, updatedModel.occupation);
+      emit(state.copyWith(newModel: updatedModel, newMessage: message, newState: newState));
+    }
+  }
 
+  void _loginUser (AuthLogin event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(newState: AuthStates.Loading, newMessage: 'Logging in...'));
+    final (newModel, message, newState) = await authRepository.loginUser(state.userModel.email, state.userModel.password);
+    if(newState == AuthStates.Authenticated) {
+      final secondModel = await userRepository.getUserData(newModel!.uid);
+      if(secondModel != null) {
+        newModel.copyWith(newName: secondModel.name, newOccupation: secondModel.occupation);
+      }
+    }
+    emit(state.copyWith(newModel: newModel, newMessage: message, newState: newState));
   }
 
   void _nameChanged(NameChanged event, Emitter<AuthState> emit) {
     emit(state.copyWith(newModel: state.userModel.copyWith(newName: event.name)));
+  }
+
+  void _occupationChanged(OccupationChanged event, Emitter<AuthState> emit) {
+    emit(state.copyWith(newModel: state.userModel.copyWith(newOccupation: event.occupation)));
   }
 
   void _emailChanged(EmailChanged event, Emitter<AuthState> emit) {
@@ -58,6 +89,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   void _passwordChanged(PasswordChanged event, Emitter<AuthState> emit) {
     emit(state.copyWith(newModel: state.userModel.copyWith(newPassword: event.password)));
+  }
+
+  void _clearFields(ClearAuthFields event, Emitter<AuthState> emit) {
+    emit(state.copyWith(newModel: UserModel(), newMessage: ''));
   }
 
 }

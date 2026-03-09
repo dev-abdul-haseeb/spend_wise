@@ -8,10 +8,15 @@ class ObscureTextBloc extends Bloc<ObscureTextEvent, ObscureTextState> {
 
   ObscureTextBloc() : super(ObscureTextState()) {
     on<ToggleObscure>(_toggleObscure);
+    on<ClearObscureFiled>(_clearObscureField);
   }
 
   void _toggleObscure (ToggleObscure event, Emitter<ObscureTextState> emit) {
     emit(state.copyWith(newBool: !state.obscureText));
   }
+  void _clearObscureField (ClearObscureFiled event, Emitter<ObscureTextState> emit) {
+    emit(state.copyWith(newBool: true));
+  }
+
 
 }

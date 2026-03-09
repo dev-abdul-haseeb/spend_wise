@@ -10,15 +10,15 @@ class AuthNavigator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (previous, current) =>
+          previous.currentState != current.currentState &&
+          current.currentState != AuthStates.Error &&
+          current.currentState != AuthStates.Loading,
       builder: (context, state) {
         if (state.currentState == AuthStates.Authenticated) {
           return HomeScreen();
-        } else if (state.currentState == AuthStates.Unauthenticated) {
-          return LoginScreen();
         } else {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return LoginScreen();
         }
       },
     );
