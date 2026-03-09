@@ -13,7 +13,7 @@ enum appColors{
 class AppColors {
 
   static const Map<appColors, Color> lightTheme = {
-    appColors.primaryColor       : Color(0xFF1E3A8A),          //Navy: For appbar, icons, main UI
+    appColors.primaryColor       : Color(0xFF5D7ADD),          //Navy: For appbar, icons, main UI
     appColors.accentColor        : Color(0xFFD4AF37),           //Gold: Buttons, highlights, active tabs
     appColors.appBGColor         : Color(0xFFE1E4E8),            //Light grey: For background
     appColors.cardColor          : Color(0xFFFFFFFF),             //White: For cards and containers

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../viewModel/bloc/auth_state/auth_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +16,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
+        actions: [
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              return
+                IconButton(onPressed: (){
+                  context.read<AuthBloc>().add(AuthLogOut());
+                }, icon: Icon(Icons.logout));
+            }
+          )
+        ],
       ),
     );
   }

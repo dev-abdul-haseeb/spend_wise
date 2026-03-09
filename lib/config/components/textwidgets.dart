@@ -13,7 +13,7 @@ enum TextType {
 class AppText extends StatelessWidget {
   final String text;
   final TextType type;
-  final Color? color;
+  final Color color;
   final TextAlign? align;
   final double? letterSpacing;
 
@@ -21,7 +21,7 @@ class AppText extends StatelessWidget {
       this.text, {
         super.key,
         this.type = TextType.buttons,
-        this.color,
+        required this.color,
         this.align = TextAlign.center,
         this.letterSpacing = 0.0,
       });

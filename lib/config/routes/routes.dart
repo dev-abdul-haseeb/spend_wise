@@ -11,8 +11,6 @@ class Routes{
         return MaterialPageRoute(builder: (context) => SplashScreen());
       case RouteNames.loginScreen:
         return MaterialPageRoute(builder: (context) => LoginScreen());
-      case RouteNames.signUpScreen:
-        return MaterialPageRoute(builder: (context) => SignupScreen());
       case RouteNames.profileScreen:
         return MaterialPageRoute(builder: (context) => ProfileScreen());
       case RouteNames.authNavigator:

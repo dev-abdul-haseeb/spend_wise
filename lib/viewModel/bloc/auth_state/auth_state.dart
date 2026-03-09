@@ -1,24 +1,31 @@
 part of 'auth_bloc.dart';
 enum AuthStates {
+  Loading,
   Initial,
   Authenticated,
   Unauthenticated,
+  Error,
 }
 class AuthState extends Equatable {
-  AuthStates currentState;    //These are states. Now there is only one
+  AuthStates currentState;
+  UserModel userModel;
+  String message;
 
-  AuthState({    //Constructor
-    this.currentState = AuthStates.Initial   //By default zero
+  AuthState ({
+    this.currentState = AuthStates.Initial,
+    this.userModel = const UserModel(),
+    this.message = '',
   });
 
-  AuthState copyWith ({AuthStates? newState}) {      //Helps us to create a new instance of the class with some value i.e. count
+  AuthState copyWith({AuthStates? newState, UserModel? newModel, String? newMessage}) {
     return AuthState(
       currentState: newState ?? this.currentState,
+      userModel: newModel ?? this.userModel,
+      message: newMessage?? this.message,
     );
   }
 
   @override
-  List<Object?> get props => [currentState];
-
+  List<Object?> get props => [currentState, userModel, message];
 
 }
