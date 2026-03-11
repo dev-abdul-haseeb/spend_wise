@@ -142,6 +142,7 @@ class _AppButtonState extends State<AppButton>
   @override
   Widget build(BuildContext context) {
     final height = _getResponsiveHeight(context);
+    final screenWidth = MediaQuery.of(context).size.width;
     final fontSize = _getFontSize(context);
     final isDisabled = widget.onPressed == null;
 
@@ -161,7 +162,7 @@ class _AppButtonState extends State<AppButton>
           opacity: isDisabled ? 0.5 : 1.0,
           child: Container(
             height: height,
-            width: widget.fullWidth ? double.infinity : null,
+            width: screenWidth > 600 ? 300 : screenWidth * 0.6,
             padding: _getPadding(),
             decoration: BoxDecoration(
               color: widget.bgcolor,
