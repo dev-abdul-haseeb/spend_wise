@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     _obscureTextBloc = ObscureTextBloc();
 
-    // Clear fields when switching tabs
+    // Clear fields when switching header
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         context.read<AuthBloc>().add(ClearAuthFields());
