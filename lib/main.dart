@@ -5,6 +5,7 @@ import 'package:spend_wise/view/splash/splash_screen.dart';
 import 'package:spend_wise/viewModel/bloc/auth_state/auth_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
+import 'config/color/colors.dart';
 import 'config/routes/route_names.dart';
 import 'config/routes/routes.dart';
 import 'firebase_options.dart';
@@ -30,10 +31,26 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => AuthBloc()),
 
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        initialRoute: RouteNames.splashScreen,
-        onGenerateRoute: Routes.generateRoute,
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            initialRoute: RouteNames.splashScreen,
+            onGenerateRoute: Routes.generateRoute,
+            theme: ThemeData(
+              textTheme: TextTheme(
+                bodyMedium: TextStyle(
+                  color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.primaryColor]
+                ),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                hintStyle: TextStyle(
+                  color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.primaryColor]
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
