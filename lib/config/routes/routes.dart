@@ -11,10 +11,12 @@ class Routes{
         return MaterialPageRoute(builder: (context) => SplashScreen());
       case RouteNames.loginScreen:
         return MaterialPageRoute(builder: (context) => LoginScreen());
-      case RouteNames.profileScreen:
-        return MaterialPageRoute(builder: (context) => ProfileScreen());
       case RouteNames.authNavigator:
         return MaterialPageRoute(builder: (context) => AuthNavigator());
+      case RouteNames.resetPasswordScreen:
+        return MaterialPageRoute(builder: (context) => ResetPasswordScreen());
+      case RouteNames.homeScreen:
+        return MaterialPageRoute(builder: (context) => HomeScreen());
 
       default:
         return MaterialPageRoute(builder: (context) {
