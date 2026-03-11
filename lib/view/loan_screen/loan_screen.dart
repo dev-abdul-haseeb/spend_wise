@@ -1,0 +1,20 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../config/color/colors.dart';
+import '../../viewModel/bloc/theme/theme_bloc.dart';
+
+class LoanScreen extends StatelessWidget {
+  const LoanScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc,ThemeState>(
+        builder: (context, themeState) {
+          return Scaffold(
+            backgroundColor: themeState.theme[appColors.appBGColor],
+          );
+        }
+    );
+  }
+}
