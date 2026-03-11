@@ -19,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogOut>(_logOutUser);
     on<AuthSignUp>(_signUpUser);
     on<AuthLogin>(_loginUser);
+    on<ResetPassword>(_resetPassword);
 
     on<NameChanged>(_nameChanged);
     on<OccupationChanged>(_occupationChanged);
@@ -34,6 +35,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(newState: AuthStates.Loading));
 
     final (userModel, newState) = await authRepository.checkLogin();
+
+    if (newState == AuthStates.Authenticated) {
+      final secondModel = await userRepository.getUserData(userModel!.uid);
+      if (secondModel != null) {
+        final updatedModel = userModel.copyWith(
+          newName: secondModel.name,
+          newOccupation: secondModel.occupation,
+        );
+        emit(state.copyWith(newState: newState, newMessage: '', newModel: updatedModel));
+        return;
+      }
+    }
 
     emit(state.copyWith(newState: newState, newMessage: '', newModel: userModel));
   }
@@ -63,16 +76,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  void _loginUser (AuthLogin event, Emitter<AuthState> emit) async {
+  void _loginUser(AuthLogin event, Emitter<AuthState> emit) async {
     emit(state.copyWith(newState: AuthStates.Loading, newMessage: 'Logging in...'));
     final (newModel, message, newState) = await authRepository.loginUser(state.userModel.email, state.userModel.password);
-    if(newState == AuthStates.Authenticated) {
+
+    if (newState == AuthStates.Authenticated) {
       final secondModel = await userRepository.getUserData(newModel!.uid);
-      if(secondModel != null) {
-        newModel.copyWith(newName: secondModel.name, newOccupation: secondModel.occupation);
+      if (secondModel != null) {
+        final updatedModel = newModel.copyWith(
+          newName: secondModel.name,
+          newOccupation: secondModel.occupation,
+        );
+        emit(state.copyWith(newModel: updatedModel, newMessage: message, newState: newState));
+        return;
       }
     }
+
     emit(state.copyWith(newModel: newModel, newMessage: message, newState: newState));
+  }
+
+  void _resetPassword(ResetPassword event, Emitter<AuthState> emit) async {
+    emit(state.copyWith(newState: AuthStates.Loading, newMessage: ''));
+    try {
+      await authRepository.resetPassword(state.userModel.email);
+      emit(state.copyWith(
+        newState: AuthStates.Unauthenticated,
+        newMessage: 'Password reset email sent!',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        newState: AuthStates.Error,
+        newMessage: 'Failed to send reset email. Check the address and try again.',
+      ));
+    }
+    add(ClearAuthFields());
   }
 
   void _nameChanged(NameChanged event, Emitter<AuthState> emit) {

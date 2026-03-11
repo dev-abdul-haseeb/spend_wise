@@ -44,7 +44,6 @@ class AuthRepository {
       }
       UserModel newModel = UserModel(
         uid: user.uid,
-        name: user.displayName ?? '',
         email: user.email!,
       );
       return (newModel, AuthStates.Authenticated);
@@ -90,5 +89,9 @@ class AuthRepository {
     } catch (e) {
       return (null, 'Something went wrong. Please try again.', AuthStates.Error);
     }
+  }
+
+  Future<void> resetPassword(String email) async {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
   }
 }

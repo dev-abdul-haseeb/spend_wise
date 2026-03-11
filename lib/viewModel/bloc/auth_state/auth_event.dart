@@ -49,3 +49,5 @@ class PasswordChanged extends AuthEvent {
 }
 
 class ClearAuthFields extends AuthEvent {}
+
+class ResetPassword extends AuthEvent {}
