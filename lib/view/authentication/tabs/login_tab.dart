@@ -98,6 +98,8 @@ class _LoginTabState extends State<LoginTab> {
 
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return BlocListener<AuthBloc, AuthState>(
@@ -117,97 +119,115 @@ class _LoginTabState extends State<LoginTab> {
           child: Center(
               child: Form (
                 key: _formKey,
-                child: Column(
-                  children: [
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: nodes.length,
-                      itemBuilder: (context, index) {
-                        final isPassword = labels[index] == 'Password';
-                        return BlocBuilder<ObscureTextBloc, ObscureTextState>(
-                          buildWhen: (previous, current) =>
-                          isPassword && previous.obscureText != current.obscureText,
-                          builder: (context, obscureState) {
-                            return TextFormField(
-                              keyboardType: inputTypes[index],
-                              focusNode: nodes[index],
-                              textCapitalization: capitalizations[index],
-                              obscureText: isPassword ? obscureState.obscureText : false,
-                              // Validate on user interaction
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              validator: (value) => _validatorForIndex(index, value),
-                              style: TextStyle(
-                                  color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.textPrimaryColor]
-                              ),
-                              decoration: InputDecoration(
-                                hintText: labels[index],
-                                border: const OutlineInputBorder(),
-                                suffixIcon: isPassword
-                                    ? IconButton(
-                                  icon: Icon(
-                                    obscureState.obscureText
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth>600 ? 400: screenWidth * 0.06
+                  ),
+                  child: Column(
+                    children: [
+                      //Spacer(),
+                      SizedBox(height: screenHeight*0.05,),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: nodes.length,
+                        itemBuilder: (context, index) {
+                          final isPassword = labels[index] == 'Password';
+                          return BlocBuilder<ObscureTextBloc, ObscureTextState>(
+                            buildWhen: (previous, current) =>
+                            isPassword && previous.obscureText != current.obscureText,
+                            builder: (context, obscureState) {
+                              return Column(
+                                children: [
+                                  SizedBox(height: screenHeight*0.03,),
+                                  TextFormField(
+                                    keyboardType: inputTypes[index],
+                                    focusNode: nodes[index],
+                                    textCapitalization: capitalizations[index],
+                                    obscureText: isPassword ? obscureState.obscureText : false,
+                                    // Validate on user interaction
+                                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                                    validator: (value) => _validatorForIndex(index, value),
+                                    style: TextStyle(
+                                        color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.textPrimaryColor]
+                                    ),
+                                    decoration: InputDecoration(
+                                        hintText: labels[index],
+                                        border: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(15)
+                                          ),
+                                        ),
+                                        suffixIcon: isPassword
+                                            ? IconButton(
+                                          icon: Icon(
+                                            obscureState.obscureText
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                          ),
+                                          onPressed: () => context
+                                              .read<ObscureTextBloc>()
+                                              .add(ToggleObscure()),
+                                        )
+                                            : null,
+                                        prefixIcon: AppIcons.appIcon[labels[index]],
+                                        prefixIconColor: themeState.theme[appColors.primaryColor]
+                                    ),
+                                    onChanged: (newValue) => context
+                                        .read<AuthBloc>()
+                                        .add(_eventForIndex(index, newValue)),
+                                    onFieldSubmitted: (_) {
+                                      if (index == nodes.length - 1) {
+                                        FocusScope.of(context).unfocus();
+                                      } else {
+                                        FocusScope.of(context).requestFocus(nodes[index + 1]);
+                                      }
+                                    },
                                   ),
-                                  onPressed: () => context
-                                      .read<ObscureTextBloc>()
-                                      .add(ToggleObscure()),
-                                )
-                                    : null,
-                                prefixIcon: AppIcons.appIcon[labels[index]],
-                                prefixIconColor: themeState.theme[appColors.primaryColor]
-                              ),
-                              onChanged: (newValue) => context
-                                  .read<AuthBloc>()
-                                  .add(_eventForIndex(index, newValue)),
-                              onFieldSubmitted: (_) {
-                                if (index == nodes.length - 1) {
-                                  FocusScope.of(context).unfocus();
-                                } else {
-                                  FocusScope.of(context).requestFocus(nodes[index + 1]);
-                                }
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
+                                ]
+                              );
+                            },
+                          );
+                        },
+                      ),
 
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: () {
-                          context.read<AuthBloc>().add(ClearAuthFields());
-                          Navigator.pushNamed(context, RouteNames.resetPasswordScreen);                },
-                        child: BlocBuilder<ThemeBloc, ThemeState>(
-                            builder: (context, state) {
-                              return AppText('Forgot Password?', color: state.theme[appColors.accentColor]!,type: TextType.buttons,);
-                            }
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          onTap: () {
+                            context.read<AuthBloc>().add(ClearAuthFields());
+                            Navigator.pushNamed(context, RouteNames.resetPasswordScreen);                },
+                          child: BlocBuilder<ThemeBloc, ThemeState>(
+                              builder: (context, state) {
+                                return AppText('Forgot Password?', color: state.theme[appColors.accentColor]!,type: TextType.buttons,);
+                              }
+                          ),
                         ),
                       ),
-                    ),
 
-                    BlocBuilder<AuthBloc, AuthState>(
-                      buildWhen: (previous, current) =>
-                      previous.currentState != current.currentState,
-                      builder: (context, state) {
-                        final isLoading = state.currentState == AuthStates.Loading;
-                        return AppButton(
-                          'Login',
-                          color: themeState.theme[appColors.textSecondaryColor]!,
-                          bgcolor: themeState.theme[appColors.accentColor]!,
-                          isLoading: isLoading,type: ButtonType.primary,
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                            if (!_formKey.currentState!.validate()) return;
-                            _loginAttempted = true;
-                            context.read<AuthBloc>().add(AuthLogin());
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                      SizedBox(height: screenHeight*0.055,),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        buildWhen: (previous, current) =>
+                        previous.currentState != current.currentState,
+                        builder: (context, state) {
+                          final isLoading = state.currentState == AuthStates.Loading;
+                          return AppButton(
+                            'Login',
+                            color: themeState.theme[appColors.textSecondaryColor]!,
+                            bgcolor: themeState.theme[appColors.accentColor]!,
+                            isLoading: isLoading,type: ButtonType.primary,
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                              if (!_formKey.currentState!.validate()) return;
+                              _loginAttempted = true;
+                              context.read<AuthBloc>().add(AuthLogin());
+                            },
+                          );
+                        },
+                      ),
+                      SizedBox(height: screenHeight*0.04,)
+                    ],
+                  ),
                 ),
               )
           ),
