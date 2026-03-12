@@ -1,14 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-enum expenseType{
-  Food,
-  Stationery,
-  Petrol,
-  Grocery,
-  Vegetables,
-  Vehicle,
-  Others,
-}
+import '../../config/enum/enum.dart';
+
 
 class ExpenseModel extends Equatable{
 
