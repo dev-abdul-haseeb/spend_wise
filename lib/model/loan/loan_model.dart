@@ -1,14 +1,11 @@
 import 'package:equatable/equatable.dart';
 
-enum loanStatus {
-  Paid,
-  Unpaid
-}
+import '../../config/enum/enum.dart';
 
 class LoanModel extends Equatable{
   final String id;
   final String person_id;
-  final String personName;
+  final String person_name;
   final DateTime? date_time;
   final loanStatus status;
   final double amount;
@@ -17,7 +14,7 @@ class LoanModel extends Equatable{
   const LoanModel({
     this.id = '',
     this.person_id = '',
-    this.personName = '',
+    this.person_name = '',
     this.date_time,
     this.status = loanStatus.Unpaid,
     this.amount = 0.0
@@ -27,7 +24,7 @@ class LoanModel extends Equatable{
     return LoanModel(
       id: newId ?? id,
       person_id: newPersonId ?? person_id,
-      personName: newPersonName ?? personName,
+      person_name: newPersonName ?? person_name,
       date_time: newDateTime ?? date_time,
       status: newStatus ?? status,
       amount: newAmount ?? amount,
@@ -35,5 +32,5 @@ class LoanModel extends Equatable{
   }
 
   @override
-  List<Object?> get props => [id, person_id, personName, date_time, status, amount];
+  List<Object?> get props => [id, person_id, person_name, date_time, status, amount];
 }

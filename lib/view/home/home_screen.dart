@@ -6,6 +6,8 @@ import 'package:spend_wise/viewModel/bloc/navigation/navigation_bloc.dart';
 import 'package:spend_wise/view/views.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
+import '../../viewModel/bloc/total_balance/total_balance_bloc.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   late NavigationBloc _navigationBloc;
+  late TotalBalanceBloc _totalBalanceBloc;
+
 
   final List<BottomNavigationBarItem> barItems = [
     BottomNavigationBarItem(
@@ -41,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _navigationBloc = NavigationBloc();
+    _totalBalanceBloc = TotalBalanceBloc();
   }
 
   @override
@@ -51,8 +56,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => _navigationBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => _navigationBloc),
+
+        BlocProvider(create: (context) => _totalBalanceBloc),
+
+      ],
       child: BlocBuilder<ThemeBloc,ThemeState>(
         builder: (context, themeState) {
           return BlocBuilder<NavigationBloc,NavigationState>(
