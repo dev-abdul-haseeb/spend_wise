@@ -16,10 +16,10 @@ class ProfileScreen extends StatelessWidget {
     'Email'
   ];
 
-  List<Icon> icons = [
-    Icon(Icons.person),
-    Icon(Icons.work_outline),
-    Icon(Icons.mail_outline),
+  List<IconData> icons = [
+    Icons.person,
+    Icons.work_outline,
+    Icons.mail_outline,
   ];
 
 
@@ -119,7 +119,10 @@ class ProfileScreen extends StatelessWidget {
                             return ListTile(
                               splashColor: themeState.theme[appColors.accentColor],
                               onTap: () {},
-                              leading: icons[index],
+                              leading: Icon(
+                                icons[index],
+                                color: themeState.theme[appColors.primaryColor],
+                              ),
                               title: AppText(
                                 labels[index],
                                 color: themeState.theme[appColors.primaryColor]!,
@@ -148,6 +151,7 @@ class ProfileScreen extends StatelessWidget {
                           size: ButtonSize.medium,
                           leadingIcon: Icons.logout,
                           onPressed: () {
+
                             context.read<AuthBloc>().add(AuthLogOut());
                           },
                         ),

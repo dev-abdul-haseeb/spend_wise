@@ -7,7 +7,11 @@ export 'authentication/tabs/signup_tab.dart';
 export 'reset_password/reset_password_screen.dart';
 
 export 'income_screen/income_screen.dart';
+export 'income_screen/dialog/add_income_dialog.dart';
+
 export 'expense_screen/expense_screen.dart';
 export 'loan_screen/loan_screen.dart';
 export 'profile_screen/profile_screen.dart';
 export 'home/header/profile_data_header.dart';
+
+export '../../../config/enum/enum.dart';
