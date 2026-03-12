@@ -24,6 +24,8 @@ class ResetPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var screenHeight = MediaQuery.of(context).size.height;
+    var screenWidth = MediaQuery.of(context).size.width;
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return Scaffold(
@@ -48,45 +50,60 @@ class ResetPasswordScreen extends StatelessWidget {
             child: Center(
               child: Form(
                 key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      keyboardType: TextInputType.emailAddress,
-                      focusNode: _emailNode,
-                      textCapitalization: TextCapitalization.none,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: _validateEmail,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your Email',
-                        border: OutlineInputBorder(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth>600 ? 400: screenWidth * 0.06
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      AppText(
+                        'Enter the email you registered and we will send you a mail with password-reset link. In case you do not get a mail, check spam box!',
+                        color: themeState.theme[appColors.textPrimaryColor]!,
+                        type: TextType.balanceAmount,
                       ),
-                      onChanged: (value) {
-                        context.read<AuthBloc>().add(EmailChanged(email: value));
-                      },
-                    ),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      buildWhen: (previous, current) =>
-                      previous.currentState != current.currentState,
-                      builder: (context, state) {
-                        final isLoading = state.currentState == AuthStates.Loading;
+                      TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        focusNode: _emailNode,
+                        textCapitalization: TextCapitalization.none,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: _validateEmail,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter your Email',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12))
+                          ),
+                        ),
+                        onChanged: (value) {
+                          context.read<AuthBloc>().add(EmailChanged(email: value));
+                        },
+                      ),
+                      SizedBox(height: screenHeight*0.02,),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        buildWhen: (previous, current) =>
+                        previous.currentState != current.currentState,
+                        builder: (context, state) {
+                          final isLoading = state.currentState == AuthStates.Loading;
 
-                        return AppButton(
-                          'Send password-reset link',
-                          color: themeState.theme[appColors.textSecondaryColor]!,
-                          bgcolor: themeState.theme[appColors.accentColor]!,
-                          isLoading: isLoading,type: ButtonType.primary,
-                          size: ButtonSize.small,
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                            if (!_formKey.currentState!.validate()) return;
-                            _resetAttempted = true;
-                            context.read<AuthBloc>().add(ResetPassword());
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          return AppButton(
+                            'Send password-reset link',
+                            color: themeState.theme[appColors.textSecondaryColor]!,
+                            bgcolor: themeState.theme[appColors.accentColor]!,
+                            isLoading: isLoading,type: ButtonType.primary,
+                            size: ButtonSize.small,
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                              if (!_formKey.currentState!.validate()) return;
+                              _resetAttempted = true;
+                              context.read<AuthBloc>().add(ResetPassword());
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

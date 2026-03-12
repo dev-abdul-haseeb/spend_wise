@@ -6,7 +6,7 @@ class UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> createUserInDb(String uid, String name, String occupation) async {
-    final user = await _firestore.collection('user').doc(uid).set({
+    await _firestore.collection('user').doc(uid).set({
       'name': name,
       'occupation': occupation
     });
