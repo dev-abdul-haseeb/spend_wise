@@ -21,7 +21,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(

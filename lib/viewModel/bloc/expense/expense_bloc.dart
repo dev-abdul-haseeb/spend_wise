@@ -69,7 +69,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
 
   void _addExpense(AddExpense event, Emitter<ExpenseState> emit) async {
     expenseRepository.addExpense(event.expense);
-     add(GetExpense());
+    add(GetExpense());
 
   }
 

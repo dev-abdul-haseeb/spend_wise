@@ -198,13 +198,17 @@ class _LoginTabState extends State<LoginTab> {
                             Navigator.pushNamed(context, RouteNames.resetPasswordScreen);                },
                           child: BlocBuilder<ThemeBloc, ThemeState>(
                               builder: (context, state) {
-                                return AppText('Forgot Password?', color: state.theme[appColors.accentColor]!,type: TextType.buttons,);
+                                return AppText(
+                                  'Forgot Password?',
+                                  color: state.theme[appColors.primaryColor]!,
+                                  type: TextType.buttons,
+                                );
                               }
                           ),
                         ),
                       ),
 
-                      SizedBox(height: screenHeight*0.055,),
+                      SizedBox(height: screenHeight*0.05,),
                       BlocBuilder<AuthBloc, AuthState>(
                         buildWhen: (previous, current) =>
                         previous.currentState != current.currentState,

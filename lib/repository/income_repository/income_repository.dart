@@ -12,6 +12,7 @@ class IncomeRepository {
       final snapshot = await _firestore
           .collection('income')
           .where('person_id', isEqualTo: personId)
+          .orderBy('date_time', descending: true)
           .get();
 
       return snapshot.docs.map((doc) {

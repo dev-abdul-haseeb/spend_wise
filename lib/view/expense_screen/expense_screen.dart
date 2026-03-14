@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/viewModel/bloc/expense/expense_bloc.dart';
 
 import '../../config/color/colors.dart';
@@ -73,7 +74,11 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                       ),
                                       decoration: InputDecoration(
                                         hint: Text('Search by type'),
-                                        border: OutlineInputBorder(),
+                                        border: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(15)
+                                          ),
+                                        ),
                                       ),
                                       onChanged: (filterKey) {
                                         context.read<ExpenseBloc>().add(SearchItem(filterKey));
@@ -98,8 +103,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                     child: expensestate.searchMessage.isNotEmpty
                                         ? Center(child: Text(expensestate.searchMessage))
                                         : ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        itemCount: expensestate.filteredExpenseModel.isEmpty ? expensestate.expenseModel.length : expensestate.filteredExpenseModel.length,
+                                        padding: EdgeInsets.only(bottom: screenHeight * 0.09),
+                                        itemCount: expensestate.filteredExpenseModel.isEmpty ? expensestate.expenseModel.length  : expensestate.filteredExpenseModel.length,
                                         itemBuilder: (context, index) {
                                           final item = expensestate.filteredExpenseModel.isEmpty ? expensestate.expenseModel[index] : expensestate.filteredExpenseModel[index];
                                           final hour = item.date_time!.hour;
@@ -127,12 +132,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                               ),
                                               child: ListTile(
 
+                                                onTap: () {},
+                                                splashColor: themeState.theme[appColors.accentColor],
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(20),
                                                 ),
                                                 tileColor: themeState.theme[appColors.cardColor],
                                                 leading: CircleAvatar(
-                                                  backgroundColor: listTileColors[index].withOpacity(0.5),
+                                                  backgroundColor: listTileColors[index % listTileColors.length].withOpacity(0.5),
                                                   child: AppText(
                                                     (index+1).toString(),
                                                     color: themeState.theme[appColors.textPrimaryColor]!,
@@ -145,18 +152,45 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                                   align: TextAlign.left,
                                                   type: TextType.balanceAmount,
                                                 ),
-                                                subtitle: AppText(
-                                                  item.reason.toString(),
-                                                  color: themeState.theme[appColors.textSecondaryColor]!,
-                                                  align: TextAlign.left,
-                                                  type: TextType.transactionDescription,
+                                                subtitle: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    // Expense type badge
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: themeState.theme[appColors.accentColor]!.withOpacity(0.15),
+                                                        borderRadius: BorderRadius.circular(20),
+                                                        border: Border.all(
+                                                          color: themeState.theme[appColors.accentColor]!.withOpacity(0.4),
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      child: AppText(
+                                                        item.type.name,  // enum name as string
+                                                        color: themeState.theme[appColors.accentColor]!,
+                                                        type: TextType.transactionDescription,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 3),
+                                                    // Reason
+                                                    AppText(
+                                                      item.reason.toString(),
+                                                      color: themeState.theme[appColors.textSecondaryColor]!,
+                                                      align: TextAlign.left,
+                                                      type: TextType.transactionDescription,
+                                                    ),
+                                                  ],
                                                 ),
                                                 trailing: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
-                                                    AppText(
+                                                    Text(
                                                       '$hour:$minute:$second',
-                                                      color: themeState.theme[appColors.textPrimaryColor]!,
-                                                      type: TextType.transactionDescription,
+                                                      style: GoogleFonts.inter(
+                                                          fontWeight: FontWeight.bold,
+                                                          color: themeState.theme[appColors.textPrimaryColor]!
+                                                      ),
                                                     ),
                                                     AppText(
                                                       '$day/$month/$year',

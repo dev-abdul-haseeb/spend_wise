@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
@@ -53,7 +54,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                       builder: (context, incomestate) {
                         switch(incomestate.incomeStatus) {
                           case(IncomeStatus.loading):
-                            return CircularProgressIndicator();
+                            return Center(child: CircularProgressIndicator());
                           case(IncomeStatus.failure):
                             return Center(child: Text(incomestate.message.toString()));
                           case(IncomeStatus.success):
@@ -75,7 +76,11 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                     ),
                                     decoration: InputDecoration(
                                       hint: Text('Search by source'),
-                                      border: OutlineInputBorder(),
+                                      border: const OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(15)
+                                        ),
+                                      ),
                                     ),
                                     onChanged: (filterKey) {
                                       context.read<IncomeBloc>().add(SearchItem(filterKey));
@@ -100,13 +105,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                   child: incomestate.searchMessage.isNotEmpty
                                     ? Center(child: Text(incomestate.searchMessage))
                                     : ListView.builder(
-                                      padding: EdgeInsets.zero,
+                                      padding: EdgeInsets.only(bottom: screenHeight * 0.09),
                                       itemCount: incomestate.filteredIncomeModel.isEmpty ? incomestate.incomeModel.length : incomestate.filteredIncomeModel.length,
                                       itemBuilder: (context, index) {
                                         final item = incomestate.filteredIncomeModel.isEmpty ? incomestate.incomeModel[index] : incomestate.filteredIncomeModel[index];
-                                        final hour = item.date_time!.hour;
-                                        final minute = item.date_time!.minute;
-                                        final second = item.date_time!.second;
+                                        final hour = item.date_time!.hour.toString().padLeft(2, '0');
+                                        final minute = item.date_time!.minute.toString().padLeft(2, '0');
+                                        final second = item.date_time!.second.toString().padLeft(2, '0');
                                         final day = item.date_time!.day;
                                         final month = item.date_time!.month;
                                         final year = item.date_time!.year;
@@ -129,12 +134,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                             ),
                                             child: ListTile(
 
+                                              onTap: () {},
+                                              splashColor: themeState.theme[appColors.accentColor],
                                               shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(20),
                                               ),
                                               tileColor: themeState.theme[appColors.cardColor],
                                               leading: CircleAvatar(
-                                                backgroundColor: listTileColors[index].withOpacity(0.5),
+                                                backgroundColor: listTileColors[index % listTileColors.length].withOpacity(0.5),
                                                 child: AppText(
                                                   (index+1).toString(),
                                                   color: themeState.theme[appColors.textPrimaryColor]!,
@@ -154,11 +161,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                                 type: TextType.transactionDescription,
                                               ),
                                               trailing: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  AppText(
+                                                  Text(
                                                     '$hour:$minute:$second',
-                                                    color: themeState.theme[appColors.textPrimaryColor]!,
-                                                    type: TextType.transactionDescription,
+                                                    style: GoogleFonts.inter(
+                                                      fontWeight: FontWeight.bold,
+                                                      color: themeState.theme[appColors.textPrimaryColor]!
+                                                    ),
                                                   ),
                                                   AppText(
                                                     '$day/$month/$year',

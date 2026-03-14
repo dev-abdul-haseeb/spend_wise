@@ -13,6 +13,7 @@ class LoanRepository {
       final snapshot = await _firestore
           .collection('loan')
           .where('person_id', isEqualTo: personId)
+          .orderBy('date_time', descending: true)
           .get();
 
       return snapshot.docs.map((doc) {
@@ -62,7 +63,7 @@ class LoanRepository {
   Stream<double> getTotalLoan() {
     final personId = FirebaseAuth.instance.currentUser!.uid;
     return _firestore
-        .collection('expense')
+        .collection('loan')
         .where('person_id', isEqualTo: personId)
         .where('status', isEqualTo: 'Unpaid')
         .snapshots()

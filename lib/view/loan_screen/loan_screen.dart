@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
@@ -74,7 +75,11 @@ class _LoanScreenState extends State<LoanScreen> {
                                       ),
                                       decoration: InputDecoration(
                                         hint: Text('Search by person'),
-                                        border: OutlineInputBorder(),
+                                        border: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(15)
+                                          ),
+                                        ),
                                       ),
                                       onChanged: (filterKey) {
                                         context.read<LoanBloc>().add(SearchItem(filterKey));
@@ -97,7 +102,7 @@ class _LoanScreenState extends State<LoanScreen> {
                                     child: loanstate.searchMessage.isNotEmpty
                                         ? Center(child: Text(loanstate.searchMessage))
                                         : ListView.builder(
-                                        padding: EdgeInsets.zero,
+                                        padding: EdgeInsets.only(bottom: screenHeight * 0.06),
                                         itemCount: loanstate.filteredLoanModel.isEmpty ? loanstate.loanModel.length : loanstate.filteredLoanModel.length,
                                         itemBuilder: (context, index) {
                                           final item = loanstate.filteredLoanModel.isEmpty ? loanstate.loanModel[index] : loanstate.filteredLoanModel[index];
@@ -148,18 +153,42 @@ class _LoanScreenState extends State<LoanScreen> {
                                               },
 
                                               leading: CircleAvatar(
-                                                backgroundColor: listTileColors[index].withOpacity(0.5),
+                                                backgroundColor: listTileColors[index % listTileColors.length].withOpacity(0.5),
                                                 child: AppText(
                                                   (index+1).toString(),
                                                   color: themeState.theme[appColors.textPrimaryColor]!,
                                                   type: TextType.transactionAmount,
                                                 ),
                                               ),
-                                              subtitle: AppText(
-                                                item.person_name.toString(),
-                                                color: themeState.theme[appColors.textSecondaryColor]!,
-                                                align: TextAlign.left,
-                                                type: TextType.transactionDescription,
+                                              subtitle: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  // Expense type badge
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: themeState.theme[appColors.accentColor]!.withOpacity(0.15),
+                                                      borderRadius: BorderRadius.circular(20),
+                                                      border: Border.all(
+                                                        color: themeState.theme[appColors.accentColor]!.withOpacity(0.4),
+                                                        width: 1,
+                                                      ),
+                                                    ),
+                                                    child: AppText(
+                                                      item.amount > 0 ? 'To Give':'To Take',  // enum name as string
+                                                      color: themeState.theme[appColors.accentColor]!,
+                                                      type: TextType.transactionDescription,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  // Reason
+                                                  AppText(
+                                                    item.person_name.toString(),
+                                                    color: themeState.theme[appColors.textSecondaryColor]!,
+                                                    align: TextAlign.left,
+                                                    type: TextType.transactionDescription,
+                                                  ),
+                                                ],
                                               ),
                                               title: AppText(
                                                 'Rs. ${item.amount}',
@@ -168,11 +197,14 @@ class _LoanScreenState extends State<LoanScreen> {
                                                 type: TextType.balanceAmount,
                                               ),
                                               trailing: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  AppText(
+                                                  Text(
                                                     '$hour:$minute:$second',
-                                                    color: themeState.theme[appColors.textPrimaryColor]!,
-                                                    type: TextType.transactionDescription,
+                                                    style: GoogleFonts.inter(
+                                                        fontWeight: FontWeight.bold,
+                                                        color: themeState.theme[appColors.textPrimaryColor]!
+                                                    ),
                                                   ),
                                                   AppText(
                                                     '$day/$month/$year',
