@@ -36,7 +36,7 @@ class TotalBalanceBloc extends Bloc<TotalAmountEvent, TotalBalanceState> {
     void recalculate() {
       emit(state.copyWith(
         balanceStatus: BalanceStatus.success,
-        total: income - expense - loan,
+        total: income - expense + loan,
         incomeTotal: income,
         expenseTotal: expense,
         loanTotal: loan,
