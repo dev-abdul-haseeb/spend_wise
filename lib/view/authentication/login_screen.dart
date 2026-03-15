@@ -55,7 +55,6 @@ class _LoginScreenState extends State<LoginScreen>
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {
           return Scaffold(
-            resizeToAvoidBottomInset: true,
             backgroundColor: themeState.theme[appColors.appBGColor],
             appBar: AppBar(
               backgroundColor: themeState.theme[appColors.primaryColor],
@@ -90,88 +89,85 @@ class _LoginScreenState extends State<LoginScreen>
                   end: Alignment.bottomCenter,
                 ),
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    screenWidth > 600
-                      ? SizedBox(
-                          height: screenWidth*0.2 + 40,
-                          child: Center(
-                            child: Container(
-                              width: screenWidth*0.2,
-                              height: screenWidth*0.2,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFFF0F2F8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Color(0xFFF0F2F8),
-                                    blurRadius: 24,
-                                    spreadRadius: 2,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    spreadRadius: -2,
-                                    offset: const Offset(0, -4),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.25),
-                                  width: 2,
+              child: Column(
+                children: [
+                  screenWidth > 600
+                    ? SizedBox(
+                        height: screenWidth*0.2 + 40,
+                        child: Center(
+                          child: Container(
+                            width: screenWidth*0.2,
+                            height: screenWidth*0.2,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFF0F2F8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFFF0F2F8),
+                                  blurRadius: 24,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 8),
                                 ),
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  spreadRadius: -2,
+                                  offset: const Offset(0, -4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.25),
+                                width: 2,
                               ),
-                              child: ClipOval(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Image.asset(
-                                    'Assets/Logo.png',
-                                    fit: BoxFit.fill,
-                                  ),
+                            ),
+                            child: ClipOval(
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Image.asset(
+                                  'Assets/Logo.png',
+                                  fit: BoxFit.fill,
                                 ),
                               ),
                             ),
                           ),
-                        )
-                      : Container(
-                          width: screenWidth,
-                          height: screenHeight*0.4,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF0F2F8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFFF0F2F8),
-                                blurRadius: 24,
-                                spreadRadius: 2,
-                                offset: const Offset(0, 8),
-                              ),
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8,
-                                spreadRadius: -2,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.25),
-                              width: 2,
+                        ),
+                      )
+                    : Container(
+                        width: screenWidth,
+                        height: screenHeight*0.4,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF0F2F8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFF0F2F8),
+                              blurRadius: 24,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 8),
                             ),
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 8,
+                              spreadRadius: -2,
+                              offset: const Offset(0, -4),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.25),
+                            width: 2,
                           ),
-                          child: Image.asset('Assets/Logo.png'),
-                      ),
-                    SizedBox(
-                      height: screenHeight * 0.6,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          LoginTab(),
-                          SignupTab(),
-                        ],
-                      ),
+                        ),
+                        child: Image.asset('Assets/Logo.png'),
                     ),
-                  ],
-                ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        LoginTab(),
+                        SignupTab(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           );
