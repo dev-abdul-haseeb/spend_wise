@@ -12,6 +12,10 @@ A new Flutter project.
 - Total balance overview
 - Real-time sync with Firebase
 
+## Video demonstration
+```
+https://drive.google.com/file/d/1IVrIrurtrnAAWpsokL6zoC37s-EyE23k/view?usp=sharing
+```
 ## 📥 Download
 
 | Platform | Download                                                                                                                      |
