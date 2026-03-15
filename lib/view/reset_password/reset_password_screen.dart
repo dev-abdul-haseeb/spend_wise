@@ -29,6 +29,7 @@ class ResetPasswordScreen extends StatelessWidget {
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return Scaffold(
+          backgroundColor: themeState.theme[appColors.appBGColor],
           appBar: AppBar(
             title: AppText('Reset password', color: themeState.theme[appColors.textPrimaryColor]!, type: TextType.appName),
             centerTitle: true,
@@ -87,7 +88,7 @@ class ResetPasswordScreen extends StatelessWidget {
                           final isLoading = state.currentState == AuthStates.Loading;
 
                           return AppButton(
-                            'Send password-reset link',
+                            'Send link',
                             color: themeState.theme[appColors.textSecondaryColor]!,
                             bgcolor: themeState.theme[appColors.accentColor]!,
                             isLoading: isLoading,type: ButtonType.primary,

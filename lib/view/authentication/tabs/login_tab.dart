@@ -194,7 +194,6 @@ class _LoginTabState extends State<LoginTab> {
                         alignment: Alignment.centerRight,
                         child: InkWell(
                           onTap: () {
-                            context.read<AuthBloc>().add(ClearAuthFields());
                             Navigator.pushNamed(context, RouteNames.resetPasswordScreen);                },
                           child: BlocBuilder<ThemeBloc, ThemeState>(
                               builder: (context, state) {
