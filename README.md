@@ -72,51 +72,52 @@ Local Storage: Shared Preferences
 8. flutter_launcher_icons
 
 ## Project structure:
-
+```
 lib/
-|
-|-config/
-|   |-color/
-|   |-components/
-|   |-enum/
-|   |-flash_bar/
-|   |-list_tile/
-|   |-routes/
-|
-|-model/
-|   |-expense/
-|   |-income/
-|   |-loan/
-|   |-user/
-|
-|-repository/
-|   |-auth_repository/
-|   |-expense_repository/
-|   |-income_repository/
-|   |-loan_repository/
-|   |-user_repository/
-|
-|-view/
-|   |-auth_navigator/
-|   |-authentication/
-|   |-expense_screen/
-|   |-home/
-|   |-income_screen/
-|   |-loan_screen/
-|   |-profile_screen/
-|   |-reset_password/
-|   |-splash/
-|
-|-viewModel/
-|   |-bloc/
-|   |   |-auth_state/
-|   |   |-expense/
-|   |   |-income/
-|   |   |-loan/
-|   |   |-navigation/
-|   |   |-obscure_text/
-|   |   |-theme/
-|   |   |-total_balance/
+│
+├── config/                  # App-wide configuration
+│   ├── color/               # Theme colors
+│   ├── components/          # Reusable widgets (buttons, text, icons)
+│   ├── enum/                # App enums
+│   ├── flash_bar/           # Notification flash bars
+│   ├── list_tile/           # Custom list tile colors
+│   └── routes/              # Route names & navigation config
+│
+├── model/                   # Data models
+│   ├── expense/
+│   ├── income/
+│   ├── loan/
+│   └── user/
+│
+├── repository/              # Data layer (Firebase calls)
+│   ├── auth_repository/
+│   ├── expense_repository/
+│   ├── income_repository/
+│   ├── loan_repository/
+│   └── user_repository/
+│
+├── view/                    # UI screens
+│   ├── auth_navigator/
+│   ├── authentication/      # Login & Sign Up
+│   ├── expense_screen/
+│   ├── home/
+│   ├── income_screen/
+│   ├── loan_screen/
+│   ├── profile_screen/
+│   ├── reset_password/
+│   └── splash/
+│
+└── viewModel/               # BLoC state management
+    └── bloc/
+        ├── auth_state/      # Authentication BLoC
+        ├── expense/         # Expense BLoC
+        ├── income/          # Income BLoC
+        ├── loan/            # Loan BLoC
+        ├── navigation/      # Bottom nav BLoC
+        ├── obscure_text/    # Password visibility BLoC
+        ├── theme/           # Theme BLoC
+        └── total_balance/   # Balance calculation BLoC
+```
 
 ## Platforms
 
