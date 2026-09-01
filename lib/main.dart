@@ -11,11 +11,14 @@ import 'config/routes/routes.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'services/profile_photo_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await ProfilePhotoService.init();
 
   runApp(MyApp());
 }

@@ -5,7 +5,6 @@ import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
 import 'package:spend_wise/config/list_tile/list_tile.dart';
-import 'package:spend_wise/viewModel/bloc/auth_state/auth_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/income/income_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
@@ -38,7 +37,6 @@ class _IncomeScreenState extends State<IncomeScreen> {
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
-    var screenWidth = MediaQuery.of(context).size.width;
     return BlocProvider(
       create: (context) {
         return _incomeBloc..add(GetIncome());
@@ -58,7 +56,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                           case(IncomeStatus.failure):
                             return Center(child: Text(incomestate.message.toString()));
                           case(IncomeStatus.success):
-                            return incomestate.incomeModel.length == 0
+                            return incomestate.incomeModel.isEmpty
                             ? Center(
                               child: AppText(
                                 'No data found!',

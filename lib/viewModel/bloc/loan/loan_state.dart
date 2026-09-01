@@ -1,38 +1,59 @@
 part of 'loan_bloc.dart';
 
 
-class LoanState extends Equatable{
-
+class LoanState extends Equatable {
   final LoanStatus loanStatus;
   final List<LoanModel> loanModel;
   final List<LoanModel> filteredLoanModel;
-
   final LoanStatusFilter selectedFilter;
-
+  final String searchQuery;
   final String message;
   final String searchMessage;
 
-  const LoanState ({
+  const LoanState({
     this.loanStatus = LoanStatus.loading,
     this.loanModel = const <LoanModel>[],
     this.filteredLoanModel = const <LoanModel>[],
     this.selectedFilter = LoanStatusFilter.all,
+    this.searchQuery = '',
     this.message = '',
-    this.searchMessage = ''
+    this.searchMessage = '',
   });
 
-  LoanState copyWith({LoanStatus? newLoanStatus, List<LoanModel>? newLoanModel, List<LoanModel>? newFilteredLoanModel, LoanStatusFilter? newSelectedFilter, String? newMessage, String? newSearchMessage}) {
+  bool get isFilterActive =>
+      searchQuery.trim().isNotEmpty || selectedFilter != LoanStatusFilter.all;
+
+  List<LoanModel> get displayedLoans =>
+      isFilterActive ? filteredLoanModel : loanModel;
+
+  LoanState copyWith({
+    LoanStatus? newLoanStatus,
+    List<LoanModel>? newLoanModel,
+    List<LoanModel>? newFilteredLoanModel,
+    LoanStatusFilter? newSelectedFilter,
+    String? newSearchQuery,
+    String? newMessage,
+    String? newSearchMessage,
+  }) {
     return LoanState(
-      loanStatus: newLoanStatus ?? this.loanStatus,
-      loanModel: newLoanModel ?? this.loanModel,
-      filteredLoanModel: newFilteredLoanModel ?? this.filteredLoanModel,
-      selectedFilter: newSelectedFilter ?? this.selectedFilter,
-      message: newMessage ?? this.message,
-      searchMessage: newSearchMessage ?? this.searchMessage,
+      loanStatus: newLoanStatus ?? loanStatus,
+      loanModel: newLoanModel ?? loanModel,
+      filteredLoanModel: newFilteredLoanModel ?? filteredLoanModel,
+      selectedFilter: newSelectedFilter ?? selectedFilter,
+      searchQuery: newSearchQuery ?? searchQuery,
+      message: newMessage ?? message,
+      searchMessage: newSearchMessage ?? searchMessage,
     );
   }
 
   @override
-  List<Object> get props => [loanStatus, loanModel, filteredLoanModel, selectedFilter, message, searchMessage];
-
+  List<Object> get props => [
+        loanStatus,
+        loanModel,
+        filteredLoanModel,
+        selectedFilter,
+        searchQuery,
+        message,
+        searchMessage,
+      ];
 }

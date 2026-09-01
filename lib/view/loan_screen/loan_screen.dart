@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
-import 'package:spend_wise/config/list_tile/list_tile.dart';
 import 'package:spend_wise/viewModel/bloc/loan/loan_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
@@ -19,8 +17,8 @@ class LoanScreen extends StatefulWidget {
 }
 
 class _LoanScreenState extends State<LoanScreen> {
-
   late LoanBloc _loanBloc;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -30,6 +28,7 @@ class _LoanScreenState extends State<LoanScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _loanBloc.close();
     super.dispose();
   }
@@ -37,273 +36,392 @@ class _LoanScreenState extends State<LoanScreen> {
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
-    var screenWidth = MediaQuery.of(context).size.width;
-    return BlocProvider(
-      create: (context) {
-        return _loanBloc..add(GetLoan());
-      },
-      child: BlocBuilder<ThemeBloc,ThemeState>(
-          builder: (context, themeState) {
-            return Scaffold(
-              backgroundColor: themeState.theme[appColors.appBGColor],
-              body: Center(
-                child: Stack(
-                  children: [
-                    BlocBuilder<LoanBloc, LoanState>(
-                        builder: (context, loanstate) {
-                          switch(loanstate.loanStatus) {
-                            case(LoanStatus.loading):
-                              return CircularProgressIndicator();
-                            case(LoanStatus.failure):
-                              return Center(child: Text(loanstate.message.toString()));
-                            case(LoanStatus.success):
-                              return loanstate.loanModel.length == 0
-                                  ? Center(
-                                child: AppText(
-                                  'No data found!',
-                                  color: themeState.theme[appColors.textPrimaryColor]!,
-                                  type: TextType.screenTitles,
-                                ),
-                              )
-                                  : Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: TextFormField(
-                                      style: TextStyle (
-                                          color: themeState.theme[appColors.accentColor]
-                                      ),
-                                      decoration: InputDecoration(
-                                        hint: Text('Search by person'),
-                                        border: const OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(15)
-                                          ),
-                                        ),
-                                      ),
-                                      onChanged: (filterKey) {
-                                        context.read<LoanBloc>().add(SearchItem(filterKey));
-                                      },
-                                    ),
-                                  ),
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Row(
-                                      children: [
-                                        _filterChip(context, 'All', LoanStatusFilter.all, loanstate, themeState),
-                                        _filterChip(context, 'Paid', LoanStatusFilter.paid, loanstate, themeState),
-                                        _filterChip(context, 'Unpaid', LoanStatusFilter.unpaid, loanstate, themeState),
-                                      ],
-                                    ),
-                                  ),
 
-                                  Expanded(
-                                    child: loanstate.searchMessage.isNotEmpty
-                                        ? Center(child: Text(loanstate.searchMessage))
-                                        : ListView.builder(
-                                        padding: EdgeInsets.only(bottom: screenHeight * 0.06),
-                                        itemCount: loanstate.filteredLoanModel.isEmpty ? loanstate.loanModel.length : loanstate.filteredLoanModel.length,
+    return BlocProvider.value(
+      value: _loanBloc..add(GetLoan()),
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          final primary = themeState.theme[appColors.primaryColor]!;
+          final cardColor = themeState.theme[appColors.cardColor]!;
+          final textPrimary = themeState.theme[appColors.textPrimaryColor]!;
+          final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
+          final accent = themeState.theme[appColors.accentColor]!;
+
+          return Scaffold(
+            backgroundColor: themeState.theme[appColors.appBGColor],
+            body: Center(
+              child: Stack(
+                children: [
+                  BlocBuilder<LoanBloc, LoanState>(
+                    builder: (context, loanstate) {
+                      switch (loanstate.loanStatus) {
+                        case LoanStatus.loading:
+                          return const Center(child: CircularProgressIndicator());
+                        case LoanStatus.failure:
+                          return Center(child: Text(loanstate.message));
+                        case LoanStatus.success:
+                          if (loanstate.loanModel.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.handshake_outlined, size: 64, color: textSecondary.withValues(alpha: 0.5)),
+                                  const SizedBox(height: 12),
+                                  AppText(
+                                    'No loans recorded yet!',
+                                    color: textPrimary,
+                                    type: TextType.screenTitles,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Use Give Loan or Take Loan below to add one',
+                                    style: TextStyle(color: textSecondary, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          final loansToDisplay = loanstate.displayedLoans;
+
+                          return Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: cardColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    style: TextStyle(color: textPrimary, fontSize: 14),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search by person or reason...',
+                                      hintStyle: TextStyle(color: textSecondary, fontSize: 14),
+                                      prefixIcon: Icon(Icons.search_rounded, color: primary),
+                                      suffixIcon: _searchController.text.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.clear_rounded, size: 18),
+                                              onPressed: () {
+                                                _searchController.clear();
+                                                context.read<LoanBloc>().add(SearchItem(''));
+                                              },
+                                            )
+                                          : null,
+                                      border: InputBorder.none,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    ),
+                                    onChanged: (filterKey) {
+                                      context.read<LoanBloc>().add(SearchItem(filterKey));
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
+                                child: Row(
+                                  children: [
+                                    _filterChip(context, 'All', LoanStatusFilter.all, loanstate, themeState),
+                                    _filterChip(context, 'Paid', LoanStatusFilter.paid, loanstate, themeState),
+                                    _filterChip(context, 'Unpaid', LoanStatusFilter.unpaid, loanstate, themeState),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: loanstate.searchMessage.isNotEmpty || loansToDisplay.isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.search_off_rounded, size: 48, color: textSecondary),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              loanstate.searchMessage.isNotEmpty
+                                                  ? loanstate.searchMessage
+                                                  : 'No matching loans found',
+                                              style: TextStyle(color: textSecondary, fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.builder(
+                                        padding: EdgeInsets.fromLTRB(12, 6, 12, screenHeight * 0.12),
+                                        itemCount: loansToDisplay.length,
                                         itemBuilder: (context, index) {
-                                          final item = loanstate.filteredLoanModel.isEmpty ? loanstate.loanModel[index] : loanstate.filteredLoanModel[index];
-                                          final hour = item.date_time!.hour;
-                                          final minute = item.date_time!.minute;
-                                          final second = item.date_time!.second;
-                                          final day = item.date_time!.day;
-                                          final month = item.date_time!.month;
-                                          final year = item.date_time!.year;
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-                                            child: ListTile(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
+                                          final item = loansToDisplay[index];
+                                          final dateTime = item.date_time ?? DateTime.now();
+                                          final isPaid = item.status == loanStatus.Paid;
+                                          final isToGive = item.amount > 0;
+
+                                          return Card(
+                                            margin: const EdgeInsets.only(bottom: 10),
+                                            color: cardColor,
+                                            elevation: 2,
+                                            shadowColor: Colors.black.withValues(alpha: 0.05),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
+                                              side: BorderSide(
+                                                color: isPaid
+                                                    ? Colors.green.withValues(alpha: 0.3)
+                                                    : primary.withValues(alpha: 0.1),
                                               ),
-                                              tileColor: item.status == loanStatus.Paid
-                                                  ? Colors.green.withOpacity(0.15)
-                                                  : themeState.theme[appColors.cardColor],
-                                              onTap: () {},
-                                              splashColor: themeState.theme[appColors.accentColor],
-                                              enabled: item.status == loanStatus.Paid ? false : true ,
-                                              onLongPress: item.status == loanStatus.Paid
+                                            ),
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(16),
+                                              onLongPress: isPaid
                                                   ? null
                                                   : () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (dialogContext) => AlertDialog(
-                                                    title: const Text('Mark as Paid'),
-                                                    content: Text('Mark loan for ${item.person_name} as paid?'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () => Navigator.of(dialogContext).pop(),
-                                                        child: const Text('Cancel'),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          context.read<LoanBloc>().add(PayLoan(item.id));
-                                                          Navigator.of(dialogContext).pop();
-                                                        },
-                                                        child: const Text(
-                                                          'Confirm',
-                                                          style: TextStyle(color: Colors.green),
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (dialogContext) => AlertDialog(
+                                                          backgroundColor: cardColor,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(18),
+                                                          ),
+                                                          title: const Text('Mark as Paid'),
+                                                          content: Text('Mark loan for "${item.person_name}" as paid?'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () => Navigator.of(dialogContext).pop(),
+                                                              child: Text('Cancel', style: TextStyle(color: textSecondary)),
+                                                            ),
+                                                            ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor: Colors.green,
+                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                              ),
+                                                              onPressed: () {
+                                                                _loanBloc.add(PayLoan(item.id));
+                                                                Navigator.of(dialogContext).pop();
+                                                              },
+                                                              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+                                                            ),
+                                                          ],
                                                         ),
+                                                      );
+                                                    },
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(14.0),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 44,
+                                                      height: 44,
+                                                      decoration: BoxDecoration(
+                                                        color: (isPaid ? Colors.green : (isToGive ? accent : primary))
+                                                            .withValues(alpha: 0.15),
+                                                        shape: BoxShape.circle,
                                                       ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-
-                                              leading: CircleAvatar(
-                                                backgroundColor: listTileColors[index % listTileColors.length].withOpacity(0.5),
-                                                child: AppText(
-                                                  (index+1).toString(),
-                                                  color: themeState.theme[appColors.textPrimaryColor]!,
-                                                  type: TextType.transactionAmount,
-                                                ),
-                                              ),
-                                              subtitle: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  // Expense type badge
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: themeState.theme[appColors.accentColor]!.withOpacity(0.15),
-                                                      borderRadius: BorderRadius.circular(20),
-                                                      border: Border.all(
-                                                        color: themeState.theme[appColors.accentColor]!.withOpacity(0.4),
-                                                        width: 1,
+                                                      child: Icon(
+                                                        isPaid
+                                                            ? Icons.check_circle_rounded
+                                                            : (isToGive ? Icons.call_made_rounded : Icons.call_received_rounded),
+                                                        color: isPaid ? Colors.green : (isToGive ? accent : primary),
+                                                        size: 22,
                                                       ),
                                                     ),
-                                                    child: AppText(
-                                                      item.amount > 0 ? 'To Give':'To Take',  // enum name as string
-                                                      color: themeState.theme[appColors.accentColor]!,
-                                                      type: TextType.transactionDescription,
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Text(
+                                                                  item.person_name,
+                                                                  style: TextStyle(
+                                                                    fontSize: 15,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: textPrimary,
+                                                                  ),
+                                                                  maxLines: 1,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                ),
+                                                              ),
+                                                              Container(
+                                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                                decoration: BoxDecoration(
+                                                                  color: (isPaid ? Colors.green : (isToGive ? Colors.blue : Colors.orange))
+                                                                      .withValues(alpha: 0.15),
+                                                                  borderRadius: BorderRadius.circular(8),
+                                                                ),
+                                                                child: Text(
+                                                                  isPaid ? 'PAID' : (isToGive ? 'TO GIVE' : 'TO TAKE'),
+                                                                  style: TextStyle(
+                                                                    fontSize: 10,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: isPaid ? Colors.green : (isToGive ? Colors.blue : Colors.orange),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          if (item.reason.trim().isNotEmpty) ...[
+                                                            const SizedBox(height: 3),
+                                                            Text(
+                                                              item.reason,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: textSecondary,
+                                                                fontStyle: FontStyle.italic,
+                                                              ),
+                                                              maxLines: 2,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ],
+                                                          const SizedBox(height: 4),
+                                                          Text(
+                                                            '${dateTime.day}/${dateTime.month}/${dateTime.year} • ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
+                                                            style: TextStyle(
+                                                              fontSize: 11,
+                                                              color: textSecondary.withValues(alpha: 0.8),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                  const SizedBox(height: 3),
-                                                  // Reason
-                                                  AppText(
-                                                    item.person_name.toString(),
-                                                    color: themeState.theme[appColors.textSecondaryColor]!,
-                                                    align: TextAlign.left,
-                                                    type: TextType.transactionDescription,
-                                                  ),
-                                                ],
-                                              ),
-                                              title: AppText(
-                                                'Rs. ${item.amount}',
-                                                color: themeState.theme[appColors.textPrimaryColor]!,
-                                                align: TextAlign.left,
-                                                type: TextType.balanceAmount,
-                                              ),
-                                              trailing: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    '$hour:$minute:$second',
-                                                    style: GoogleFonts.inter(
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      'Rs. ${item.amount.abs().toStringAsFixed(0)}',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
                                                         fontWeight: FontWeight.bold,
-                                                        color: themeState.theme[appColors.textPrimaryColor]!
+                                                        color: isPaid ? Colors.green : (isToGive ? accent : primary),
+                                                      ),
                                                     ),
-                                                  ),
-                                                  AppText(
-                                                    '$day/$month/$year',
-                                                    color: themeState.theme[appColors.textPrimaryColor]!,
-                                                    type: TextType.transactionDescription,
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           );
-                                        }
-                                    ),
-                                  ),
-                                ],
-                              );
-                          }
-                        }
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: screenHeight*0.02),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: screenWidth*0.4,
-                              child: AppButton(
-                                'Give Loan',
-                                bgcolor: themeState.theme[appColors.accentColor]!,
-                                color: themeState.theme[appColors.textPrimaryColor]!,
-                                size: ButtonSize.small,
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (dialogContext) {
-                                      return AddLoanDialog(
-                                        themeState: themeState,
-                                        loanBloc: context.read<LoanBloc>(),
-                                        title: 'Give loan',
-                                        take: false
-                                      );
-                                    },
-                                  );
-                                },
+                                        },
+                                      ),
                               ),
-                            ),
-                            SizedBox(width: screenWidth*0.1,),
-                            SizedBox(
-                              width: screenWidth*0.4,
-                              child: AppButton(
-                                'Take loan',
-                                bgcolor: themeState.theme[appColors.accentColor]!,
-                                color: themeState.theme[appColors.textPrimaryColor]!,
-                                size: ButtonSize.small,
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (dialogContext) {
-                                      return AddLoanDialog(
-                                        themeState: themeState,
-                                        loanBloc: context.read<LoanBloc>(),
-                                        title: 'Take loan',
-                                        take: true
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
+                            ],
+                          );
+                      }
+                    },
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, screenHeight * 0.02),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            themeState.theme[appColors.appBGColor]!.withValues(alpha: 0.0),
+                            themeState.theme[appColors.appBGColor]!,
                           ],
                         ),
                       ),
-                    )
-                  ],
-                ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: AppButton(
+                              'Give Loan',
+                              bgcolor: accent,
+                              color: themeState.theme[appColors.textSecondaryColor]!,
+                              type: ButtonType.primary,
+                              size: ButtonSize.medium,
+                              leadingIcon: Icons.arrow_upward_rounded,
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (dialogContext) {
+                                    return AddLoanDialog(
+                                      themeState: themeState,
+                                      loanBloc: _loanBloc,
+                                      title: 'Give Loan',
+                                      take: false,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AppButton(
+                              'Take Loan',
+                              bgcolor: primary,
+                              color: themeState.theme[appColors.textSecondaryColor]!,
+                              type: ButtonType.primary,
+                              size: ButtonSize.medium,
+                              leadingIcon: Icons.arrow_downward_rounded,
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (dialogContext) {
+                                    return AddLoanDialog(
+                                      themeState: themeState,
+                                      loanBloc: _loanBloc,
+                                      title: 'Take Loan',
+                                      take: true,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            );
-          }
+            ),
+          );
+        },
       ),
     );
   }
-  Widget _filterChip(BuildContext context, String label, LoanStatusFilter filter, LoanState state, ThemeState themeState) {
+
+  Widget _filterChip(
+    BuildContext context,
+    String label,
+    LoanStatusFilter filter,
+    LoanState state,
+    ThemeState themeState,
+  ) {
     final isSelected = state.selectedFilter == filter;
+    final primary = themeState.theme[appColors.primaryColor]!;
+    final cardColor = themeState.theme[appColors.cardColor]!;
+    final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
+
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: FilterChip(
         label: Text(
           label,
           style: TextStyle(
-            color: isSelected
-                ? themeState.theme[appColors.textPrimaryColor]
-                : themeState.theme[appColors.textSecondaryColor],
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.white : textSecondary,
           ),
         ),
         selected: isSelected,
+        showCheckmark: false,
         onSelected: (_) => context.read<LoanBloc>().add(FilterbyStatus(filter)),
-        selectedColor: themeState.theme[appColors.accentColor]!.withOpacity(0.4),
-        backgroundColor: themeState.theme[appColors.cardColor],
+        selectedColor: primary,
+        backgroundColor: cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isSelected ? primary : textSecondary.withValues(alpha: 0.2),
+          ),
+        ),
       ),
     );
   }

@@ -28,6 +28,7 @@ class LoanRepository {
             orElse: () => loanStatus.Unpaid,
           ),
           person_name: data['person_name'] ?? '',
+          reason: data['reason'] ?? '',
         );
       }).toList();
 
@@ -43,10 +44,11 @@ class LoanRepository {
           .collection('loan')
           .add({
         'person_id' : person_id,
-        'amount':loan.amount,
-        'date_time' :loan.date_time,
+        'amount': loan.amount,
+        'date_time' : loan.date_time,
         'person_name': loan.person_name,
-        'status' : loan.status.name
+        'reason': loan.reason,
+        'status' : loan.status.name,
       });
 
     } catch (e) {

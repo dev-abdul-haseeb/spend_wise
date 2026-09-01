@@ -52,19 +52,23 @@ class IncomeRepository {
     await FirebaseFirestore.instance.collection('income').doc(uid).delete();
   }
 
-  Stream<double> getTotalIncome() {
-    final personId = FirebaseAuth.instance.currentUser!.uid;
+  Stream<List<IncomeModel>> getIncomeListStream() {
+    final personId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return _firestore
         .collection('income')
         .where('person_id', isEqualTo: personId)
         .snapshots()
         .map((snapshot) {
-      double total = 0;
-      for (var doc in snapshot.docs) {
-        total += (doc.data()['amount'] as num).toDouble();
-      }
-      return total;
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return IncomeModel(
+          id: doc.id,
+          person_id: data['person_id'] ?? '',
+          amount: (data['amount'] as num).toDouble(),
+          date_time: (data['date_time'] as Timestamp).toDate(),
+          source: data['source'] ?? '',
+        );
+      }).toList();
     });
   }
-
 }

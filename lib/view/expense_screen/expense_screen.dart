@@ -36,7 +36,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
-    var screenWidth = MediaQuery.of(context).size.width;
     return BlocProvider(
       create: (context) {
         return _expenseBloc..add(GetExpense());
@@ -56,7 +55,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                             case(ExpenseStatus.failure):
                               return Center(child: Text(expensestate.message.toString()));
                             case(ExpenseStatus.success):
-                              return expensestate.expenseModel.length == 0
+                              return expensestate.expenseModel.isEmpty
                                   ? Center(
                                 child: AppText(
                                   'No expenses found!',

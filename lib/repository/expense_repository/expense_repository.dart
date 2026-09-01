@@ -58,20 +58,27 @@ class ExpenseRepository {
     await FirebaseFirestore.instance.collection('expense').doc(uid).delete();
   }
 
-  Stream<double> getTotalExpense() {
-    final personId = FirebaseAuth.instance.currentUser!.uid;
+  Stream<List<ExpenseModel>> getExpenseListStream() {
+    final personId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return _firestore
         .collection('expense')
         .where('person_id', isEqualTo: personId)
         .snapshots()
         .map((snapshot) {
-      double total = 0;
-      for (var doc in snapshot.docs) {
-        total += (doc.data()['amount'] as num).toDouble();
-      }
-      return total;
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return ExpenseModel(
+          id: doc.id,
+          person_id: data['person_id'] ?? '',
+          amount: (data['amount'] as num).toDouble(),
+          date_time: (data['date_time'] as Timestamp).toDate(),
+          type: expenseType.values.firstWhere(
+            (e) => e.name == data['type'],
+            orElse: () => expenseType.Others,
+          ),
+          reason: data['reason'] ?? '',
+        );
+      }).toList();
     });
   }
-
-
 }

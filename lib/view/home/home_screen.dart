@@ -6,6 +6,7 @@ import 'package:spend_wise/viewModel/bloc/navigation/navigation_bloc.dart';
 import 'package:spend_wise/view/views.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
+import '../../services/app_update_service.dart';
 import '../../viewModel/bloc/total_balance/total_balance_bloc.dart';
 
 
@@ -22,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late TotalBalanceBloc _totalBalanceBloc;
 
 
-  final List<BottomNavigationBarItem> barItems = [
+  final List<BottomNavigationBarItem> barItems = const [
     BottomNavigationBarItem(
       icon: Icon(Icons.arrow_circle_up),
       label: 'Income',
@@ -46,6 +47,10 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _navigationBloc = NavigationBloc();
     _totalBalanceBloc = TotalBalanceBloc();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppUpdateService.checkForUpdate(context, showNoUpdateDialog: false);
+    });
   }
 
   @override

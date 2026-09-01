@@ -81,14 +81,13 @@ class _SignupTabState extends State<SignupTab> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(nodes[0]);
-    });
   }
 
   @override
   void dispose() {
-    for (final node in nodes) node.dispose();
+    for (final node in nodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -107,120 +106,120 @@ class _SignupTabState extends State<SignupTab> {
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    return BlocBuilder<ThemeBloc,ThemeState>(
+    return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
         return BlocListener<AuthBloc, AuthState>(
           listenWhen: (previous, current) =>
-          previous.currentState == AuthStates.Loading &&
+              previous.currentState == AuthStates.Loading &&
               current.currentState != AuthStates.Loading,
           listener: (context, state) {
             final isSuccess = state.currentState == AuthStates.Authenticated;
-            final message =
-            (state.message?.isNotEmpty ?? false) ? state.message! : (isSuccess ? 'Sign up successful!' : 'Sign up failed.');
+            final message = state.message.isNotEmpty
+                ? state.message
+                : (isSuccess ? 'Sign up successful!' : 'Sign up failed.');
             showFlashbar(context, message, isSuccess);
           },
-          child: Center(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Form(
               key: _formKey,
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth>600 ? 400: screenWidth * 0.06
+                  horizontal: screenWidth > 600 ? 400 : screenWidth * 0.06,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    //Spacer(),
-                    SizedBox(height: screenHeight*0.015,),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: nodes.length,
-                      itemBuilder: (context, index) {
-                        final isPassword = labels[index] == 'Password';
-                        return BlocBuilder<ObscureTextBloc, ObscureTextState>(
-                          buildWhen: (previous, current) =>
-                          isPassword && previous.obscureText != current.obscureText,
-                          builder: (context, obscureState) {
-                            return Column(
-                              children: [
-                                SizedBox(height: screenHeight*0.02,),
-
-                                TextFormField(
-                                  keyboardType: inputTypes[index],
-                                  focusNode: nodes[index],
-                                  textCapitalization: capitalizations[index],
-                                  obscureText: isPassword ? obscureState.obscureText : false,
-                                  // Validate on user interaction
-                                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                                  validator: (value) => _validatorForIndex(index, value),
-                                  style: TextStyle(
-                                      color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.textPrimaryColor]
+                    SizedBox(height: screenHeight * 0.015),
+                    ...List.generate(nodes.length, (index) {
+                      final isPassword = labels[index] == 'Password';
+                      return BlocBuilder<ObscureTextBloc, ObscureTextState>(
+                        buildWhen: (previous, current) =>
+                            isPassword && previous.obscureText != current.obscureText,
+                        builder: (context, obscureState) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: TextFormField(
+                              keyboardType: inputTypes[index],
+                              focusNode: nodes[index],
+                              textCapitalization: capitalizations[index],
+                              obscureText: isPassword ? obscureState.obscureText : false,
+                              // Validate on user interaction
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              validator: (value) => _validatorForIndex(index, value),
+                              scrollPadding: const EdgeInsets.only(bottom: 100),
+                              style: TextStyle(
+                                color: themeState.isDark
+                                    ? themeState.theme[appColors.accentColor]
+                                    : themeState.theme[appColors.textPrimaryColor],
+                              ),
+                              decoration: InputDecoration(
+                                hintText: labels[index],
+                                border: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(15),
                                   ),
-                                  decoration: InputDecoration(
-                                    hintText: labels[index],
-                                    border: const OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(15)
-                                      ),
-                                    ),
-                                    suffixIcon: isPassword
-                                        ? IconButton(
-                                      icon: Icon(
-                                        obscureState.obscureText
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                      ),
-                                      onPressed: () => context
-                                          .read<ObscureTextBloc>()
-                                          .add(ToggleObscure()),
-                                    )
-                                        : null,
-                                    prefixIcon: AppIcons.appIcon[labels[index]],
-                                    prefixIconColor: themeState.theme[appColors.primaryColor]
-                                  ),
-                                  onChanged: (newValue) => context
-                                      .read<AuthBloc>()
-                                      .add(_eventForIndex(index, newValue)),
-                                  onFieldSubmitted: (_) {
-                                    if (index == nodes.length - 1) {
-                                      FocusScope.of(context).unfocus();
-                                    } else {
-                                      FocusScope.of(context).requestFocus(nodes[index + 1]);
-                                    }
-                                  },
                                 ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: screenHeight*0.01,),
+                                suffixIcon: isPassword
+                                    ? IconButton(
+                                        icon: Icon(
+                                          obscureState.obscureText
+                                              ? Icons.visibility_off
+                                              : Icons.visibility,
+                                        ),
+                                        onPressed: () => context
+                                            .read<ObscureTextBloc>()
+                                            .add(ToggleObscure()),
+                                      )
+                                    : null,
+                                prefixIcon: AppIcons.appIcon[labels[index]],
+                                prefixIconColor: themeState.theme[appColors.primaryColor],
+                              ),
+                              onChanged: (newValue) => context
+                                  .read<AuthBloc>()
+                                  .add(_eventForIndex(index, newValue)),
+                              onFieldSubmitted: (_) {
+                                if (index == nodes.length - 1) {
+                                  FocusScope.of(context).unfocus();
+                                } else {
+                                  FocusScope.of(context).requestFocus(nodes[index + 1]);
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }),
+                    SizedBox(height: screenHeight * 0.015),
                     BlocBuilder<AuthBloc, AuthState>(
                       buildWhen: (previous, current) =>
-                      previous.currentState != current.currentState,
+                          previous.currentState != current.currentState,
                       builder: (context, state) {
                         final isLoading = state.currentState == AuthStates.Loading;
                         return AppButton(
                           'Sign Up',
                           color: themeState.theme[appColors.textSecondaryColor]!,
                           bgcolor: themeState.theme[appColors.accentColor]!,
-                          isLoading: isLoading,type: ButtonType.primary,
+                          isLoading: isLoading,
+                          type: ButtonType.primary,
                           onPressed: isLoading
                               ? null
                               : () {
-                            if (!_formKey.currentState!.validate()) return;
-                            context.read<AuthBloc>().add(AuthSignUp());
-                          },
+                                  if (!_formKey.currentState!.validate()) return;
+                                  context.read<AuthBloc>().add(AuthSignUp());
+                                },
                         );
                       },
                     ),
+                    SizedBox(height: screenHeight * 0.04),
                   ],
                 ),
               ),
             ),
           ),
         );
-      }
+      },
     );
 
   }

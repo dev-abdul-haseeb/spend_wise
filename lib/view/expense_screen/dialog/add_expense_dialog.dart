@@ -5,15 +5,17 @@ import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
 import '../../../config/enum/enum.dart';
 import '../../../model/expense/expense_model.dart';
-import '../../../model/expense/expense_model.dart';
-import '../../../viewModel/bloc/expense/expense_bloc.dart';
 import '../../../viewModel/bloc/expense/expense_bloc.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   final ExpenseBloc expenseBloc;
   final ThemeState themeState;
 
-  const AddExpenseDialog({required this.expenseBloc, required this.themeState});
+  const AddExpenseDialog({
+    super.key,
+    required this.expenseBloc,
+    required this.themeState,
+  });
 
   @override
   State<AddExpenseDialog> createState() => _AddExpenseDialogState();

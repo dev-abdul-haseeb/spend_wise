@@ -6,7 +6,6 @@
 .DS_Store
 .atom/
 .build/
-.buildlog/
 .history
 .svn/
 .swiftpm/
@@ -31,6 +30,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+!/build/web/
 /coverage/
 
 # Symbolication related

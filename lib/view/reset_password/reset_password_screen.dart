@@ -8,12 +8,23 @@ import '../../config/flash_bar/flash_bar.dart';
 import '../../viewModel/bloc/auth_state/auth_bloc.dart';
 import '../../viewModel/bloc/theme/theme_bloc.dart';
 
-class ResetPasswordScreen extends StatelessWidget {
-  ResetPasswordScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
+  @override
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+}
+
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _resetAttempted = false;
   final _formKey = GlobalKey<FormState>();
   final FocusNode _emailNode = FocusNode();
+
+  @override
+  void dispose() {
+    _emailNode.dispose();
+    super.dispose();
+  }
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) return 'Email is required.';
@@ -37,14 +48,14 @@ class ResetPasswordScreen extends StatelessWidget {
           ),
           body: BlocListener<AuthBloc, AuthState>(
             listenWhen: (previous, current) =>
-            _resetAttempted &&
+                _resetAttempted &&
                 previous.currentState == AuthStates.Loading &&
                 current.currentState != AuthStates.Loading,
             listener: (context, state) {
               _resetAttempted = false;
               final isSuccess = state.currentState != AuthStates.Error;
-              final message = (state.message?.isNotEmpty ?? false)
-                  ? state.message!
+              final message = state.message.isNotEmpty
+                  ? state.message
                   : (isSuccess ? 'Password reset email sent!' : 'Failed to send reset email.');
               showFlashbar(context, message, isSuccess);
             },

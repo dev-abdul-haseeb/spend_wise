@@ -8,14 +8,9 @@ part 'loan_state.dart';
 part 'loan_event.dart';
 
 class LoanBloc extends Bloc<LoanEvent, LoanState> {
+  final LoanRepository loanRepository = LoanRepository();
 
-  LoanRepository loanRepository = LoanRepository();
-
-  List<LoanModel> filteredLoanModel = [];
-
-
-
-  LoanBloc() : super(LoanState()) {
+  LoanBloc() : super(const LoanState()) {
     on<GetLoan>(_getLoan);
     on<SearchItem>(_filterList);
     on<AddLoan>(_addLoan);
@@ -23,85 +18,82 @@ class LoanBloc extends Bloc<LoanEvent, LoanState> {
     on<FilterbyStatus>(_filterByStatus);
   }
 
-  void _getLoan(GetLoan event, Emitter<LoanState> emit) async {
-    await loanRepository.fetchLoan().then((value) {
-      emit(
-        state.copyWith(
-            newLoanStatus: LoanStatus.success,
-            newLoanModel: value,
-            newMessage: 'Successful'
-        )
-      );
-    }).onError((error, stackTrace) {
-      emit(
-        state.copyWith(
-            newLoanStatus: LoanStatus.failure,
-            newMessage: error.toString()
-        )
-      );
-    });
+  List<LoanModel> _computeFilteredList(
+    List<LoanModel> loans,
+    String query,
+    LoanStatusFilter filter,
+  ) {
+    var result = loans;
+
+    // Filter by status if not All
+    if (filter != LoanStatusFilter.all) {
+      final targetStatus = filter == LoanStatusFilter.paid
+          ? loanStatus.Paid
+          : loanStatus.Unpaid;
+      result = result.where((element) => element.status == targetStatus).toList();
+    }
+
+    // Filter by search query (person name or reason)
+    final cleanQuery = query.trim().toLowerCase();
+    if (cleanQuery.isNotEmpty) {
+      result = result.where((element) {
+        final nameMatch = element.person_name.toLowerCase().contains(cleanQuery);
+        final reasonMatch = element.reason.toLowerCase().contains(cleanQuery);
+        return nameMatch || reasonMatch;
+      }).toList();
+    }
+
+    return result;
   }
 
-  Future<void> _filterList (SearchItem event, Emitter<LoanState> emit) async {
+  void _getLoan(GetLoan event, Emitter<LoanState> emit) async {
+    try {
+      final value = await loanRepository.fetchLoan();
+      final filtered = _computeFilteredList(value, state.searchQuery, state.selectedFilter);
+      final isFilteredEmpty = filtered.isEmpty && (state.searchQuery.trim().isNotEmpty || state.selectedFilter != LoanStatusFilter.all);
 
-    if(event.searchKey.isEmpty) {
-      emit(state.copyWith(newFilteredLoanModel: [], newSearchMessage: ''));
+      emit(state.copyWith(
+        newLoanStatus: LoanStatus.success,
+        newLoanModel: value,
+        newFilteredLoanModel: filtered,
+        newSearchMessage: isFilteredEmpty ? 'No matching loans found' : '',
+        newMessage: 'Successful',
+      ));
+    } catch (error) {
+      emit(state.copyWith(
+        newLoanStatus: LoanStatus.failure,
+        newMessage: error.toString(),
+      ));
     }
+  }
 
-    else if(event.searchKey.isNotEmpty) {
-      filteredLoanModel = state.loanModel.where(
+  Future<void> _filterList(SearchItem event, Emitter<LoanState> emit) async {
+    final newQuery = event.searchKey;
+    final filtered = _computeFilteredList(state.loanModel, newQuery, state.selectedFilter);
+    final isFilteredEmpty = filtered.isEmpty && (newQuery.trim().isNotEmpty || state.selectedFilter != LoanStatusFilter.all);
 
-
-        //Contains tells that if email contains any word of SearchKey
-              (element) => element.person_name.toLowerCase().toString().contains(event.searchKey.toLowerCase().toString()))
-          .toList();
-      if(filteredLoanModel.isEmpty) {   //If the search doesn't match
-        emit(state.copyWith(newFilteredLoanModel: [], newSearchMessage: 'No data found'));
-      }
-      else {
-        emit(state.copyWith(newFilteredLoanModel: filteredLoanModel, newSearchMessage: ''));
-      }
-    }
+    emit(state.copyWith(
+      newSearchQuery: newQuery,
+      newFilteredLoanModel: filtered,
+      newSearchMessage: isFilteredEmpty ? 'No matching loans found' : '',
+    ));
   }
 
   Future<void> _filterByStatus(FilterbyStatus event, Emitter<LoanState> emit) async {
-    if (event.searchkey == LoanStatusFilter.all) {
-      emit(state.copyWith(
-        newFilteredLoanModel: [],
-        newSearchMessage: '',
-        newSelectedFilter: LoanStatusFilter.all,
-      ));
-      return;
-    }
+    final newFilter = event.searchkey;
+    final filtered = _computeFilteredList(state.loanModel, state.searchQuery, newFilter);
+    final isFilteredEmpty = filtered.isEmpty && (state.searchQuery.trim().isNotEmpty || newFilter != LoanStatusFilter.all);
 
-    // ✅ map LoanStatusFilter directly to loanStatus
-    final targetStatus = event.searchkey == LoanStatusFilter.paid
-        ? loanStatus.Paid
-        : loanStatus.Unpaid;
-
-    filteredLoanModel = state.loanModel
-        .where((element) => element.status == targetStatus) // ✅ direct enum comparison
-        .toList();
-
-    if (filteredLoanModel.isEmpty) {
-      emit(state.copyWith(
-        newFilteredLoanModel: [],
-        newSearchMessage: 'No data found',
-        newSelectedFilter: event.searchkey,
-      ));
-    } else {
-      emit(state.copyWith(
-        newFilteredLoanModel: filteredLoanModel,
-        newSearchMessage: '',
-        newSelectedFilter: event.searchkey,
-      ));
-    }
+    emit(state.copyWith(
+      newSelectedFilter: newFilter,
+      newFilteredLoanModel: filtered,
+      newSearchMessage: isFilteredEmpty ? 'No matching loans found' : '',
+    ));
   }
 
   void _addLoan(AddLoan event, Emitter<LoanState> emit) async {
-    loanRepository.addLoan(event.loan);
-     add(GetLoan());
-
+    await loanRepository.addLoan(event.loan);
+    add(GetLoan());
   }
 
   void _payLoan(PayLoan event, Emitter<LoanState> emit) async {
@@ -112,13 +104,15 @@ class LoanBloc extends Bloc<LoanEvent, LoanState> {
       return item;
     }).toList();
 
-
     await loanRepository.payLoan(event.id);
 
+    final filtered = _computeFilteredList(updatedList, state.searchQuery, state.selectedFilter);
+    final isFilteredEmpty = filtered.isEmpty && (state.searchQuery.trim().isNotEmpty || state.selectedFilter != LoanStatusFilter.all);
 
     emit(state.copyWith(
       newLoanModel: updatedList,
-      newFilteredLoanModel: [],
+      newFilteredLoanModel: filtered,
+      newSearchMessage: isFilteredEmpty ? 'No matching loans found' : '',
       newMessage: 'Loan marked as paid!',
     ));
   }
