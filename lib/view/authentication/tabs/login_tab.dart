@@ -212,8 +212,8 @@ class _LoginTabState extends State<LoginTab> {
                         final isLoading = state.currentState == AuthStates.Loading;
                         return AppButton(
                           'Login',
-                          color: themeState.theme[appColors.textSecondaryColor]!,
-                          bgcolor: themeState.theme[appColors.accentColor]!,
+                          color: Colors.white,
+                          bgcolor: themeState.theme[appColors.primaryColor]!,
                           isLoading: isLoading,
                           type: ButtonType.primary,
                           onPressed: isLoading

@@ -13,24 +13,49 @@ enum appColors{
 class AppColors {
 
   static const Map<appColors, Color> lightTheme = {
-    appColors.primaryColor       : Color(0xFF5D7ADD),          //Navy: For appbar, icons, main UI
-    appColors.accentColor        : Color(0xFFD4AF37),           //Gold: Buttons, highlights, active tabs
-    appColors.appBGColor         : Color(0xFFE1E4E8),            //Light grey: For background
-    appColors.cardColor          : Color(0xFFFFFFFF),             //White: For cards and containers
-    appColors.expenseColor       : Color(0xFFEF4444),          //Soft red: For expense
-    appColors.incomeColor        : Color(0xFF22C55E),           //Fresh green: For income
-    appColors.textPrimaryColor   : Color(0xFF0F172A),
-    appColors.textSecondaryColor : Color(0xFF64748B),
+    appColors.primaryColor       : Color(0xFF4F46E5),          // Modern Vibrant Indigo
+    appColors.accentColor        : Color(0xFFF59E0B),          // Luminous Amber Gold
+    appColors.appBGColor         : Color(0xFFF8FAFC),          // Clean Porcelain Slate
+    appColors.cardColor          : Color(0xFFFFFFFF),          // Pure Crisp White
+    appColors.expenseColor       : Color(0xFFF43F5E),          // Coral Rose
+    appColors.incomeColor        : Color(0xFF10B981),          // Emerald Mint
+    appColors.textPrimaryColor   : Color(0xFF0F172A),          // Deep Slate
+    appColors.textSecondaryColor : Color(0xFF64748B),          // Cool Slate Grey
   };
 
   static const Map<appColors, Color> darkTheme = {
-    appColors.primaryColor       : Color(0xFF3B5FCC),
-    appColors.accentColor        : Color(0xFFD4AF37),
-    appColors.appBGColor         : Color(0xFF0F172A),
-    appColors.cardColor          : Color(0xFF1E293B),
-    appColors.expenseColor       : Color(0xFFFF6B6B),
-    appColors.incomeColor        : Color(0xFF4ADE80),
-    appColors.textPrimaryColor   : Color(0xFFF1F5F9),
-    appColors.textSecondaryColor : Color(0xFF94A3B8),
+    appColors.primaryColor       : Color(0xFF6366F1),          // Electric Indigo
+    appColors.accentColor        : Color(0xFFFBBF24),          // Warm Gold
+    appColors.appBGColor         : Color(0xFF090D16),          // Deep Obsidian
+    appColors.cardColor          : Color(0xFF131B2E),          // Elevated Slate Glass
+    appColors.expenseColor       : Color(0xFFFB7185),          // Neon Coral Rose
+    appColors.incomeColor        : Color(0xFF34D399),          // Bright Mint
+    appColors.textPrimaryColor   : Color(0xFFF8FAFC),          // Porcelain White
+    appColors.textSecondaryColor : Color(0xFF94A3B8),          // Muted Silver
   };
+
+  // Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient incomeGradient = LinearGradient(
+    colors: [Color(0xFF10B981), Color(0xFF059669)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient expenseGradient = LinearGradient(
+    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient darkPrimaryGradient = LinearGradient(
+    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/services/profile_photo_service.dart';
 import 'package:spend_wise/viewModel/bloc/auth_state/auth_bloc.dart';
@@ -56,7 +57,6 @@ class ProfileDataHeader extends StatelessWidget {
       builder: (context, themeState) {
         final primaryColor = themeState.theme[appColors.primaryColor]!;
         final accentColor = themeState.theme[appColors.accentColor]!;
-        final cardColor = themeState.theme[appColors.cardColor]!;
 
         return BlocBuilder<TotalBalanceBloc, TotalBalanceState>(
           builder: (context, balanceState) {
@@ -66,29 +66,30 @@ class ProfileDataHeader extends StatelessWidget {
               width: double.infinity,
               margin: EdgeInsets.fromLTRB(
                 isWide ? 32 : 16,
-                16,
+                14,
                 isWide ? 32 : 16,
                 12,
               ),
               padding: EdgeInsets.symmetric(
-                horizontal: isWide ? 28 : 18,
-                vertical: isWide ? 24 : 18,
+                horizontal: isWide ? 28 : 20,
+                vertical: isWide ? 24 : 20,
               ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     primaryColor,
-                    Color.lerp(primaryColor, accentColor, 0.4) ?? primaryColor,
+                    Color.lerp(primaryColor, const Color(0xFF7C3AED), 0.6) ?? primaryColor,
+                    Color.lerp(primaryColor, accentColor, 0.25) ?? primaryColor,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withValues(alpha: 0.35),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
+                    color: primaryColor.withValues(alpha: 0.38),
+                    blurRadius: 22,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
@@ -110,48 +111,59 @@ class ProfileDataHeader extends StatelessWidget {
                                   photoPath.isNotEmpty &&
                                   File(photoPath).existsSync();
 
-                              return CircleAvatar(
-                                radius: 20,
-                                backgroundColor: cardColor.withValues(alpha: 0.25),
-                                backgroundImage:
-                                    hasPhoto ? FileImage(File(photoPath)) : null,
-                                child: !hasPhoto
-                                    ? Text(
-                                        initial,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      )
-                                    : null,
+                              return Container(
+                                padding: const EdgeInsets.all(2.5),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                  backgroundImage:
+                                      hasPhoto ? FileImage(File(photoPath)) : null,
+                                  child: !hasPhoto
+                                      ? Text(
+                                          initial,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 16,
+                                          ),
+                                        )
+                                      : null,
+                                ),
                               );
                             },
                           );
                         },
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Total Balance (Overall)',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white.withValues(alpha: 0.82),
                                 fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Rs. ${balanceState.total.toStringAsFixed(0)}',
-                                style: const TextStyle(
+                                style: GoogleFonts.plusJakartaSans(
                                   color: Colors.white,
-                                  fontSize: 26,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.5,
                                 ),
@@ -161,12 +173,12 @@ class ProfileDataHeader extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Colors.white.withValues(alpha: 0.35),
                             width: 1,
                           ),
                         ),
@@ -177,10 +189,10 @@ class ProfileDataHeader extends StatelessWidget {
                             const SizedBox(width: 5),
                             Text(
                               balanceState.filterLabel,
-                              style: const TextStyle(
+                              style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -189,11 +201,12 @@ class ProfileDataHeader extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
 
                   // Filter Buttons (This Month, Custom Range, All Time)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
                     child: Row(
                       children: [
                         _DateFilterChip(
@@ -239,12 +252,12 @@ class ProfileDataHeader extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Container(
                     height: 1,
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.16),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
                   // Three Stat Tiles: Income (filtered), Expenses (filtered), Loans (overall)
                   Row(
@@ -255,13 +268,13 @@ class ProfileDataHeader extends StatelessWidget {
                           label: 'Income',
                           value: 'Rs. ${balanceState.incomeTotal.toStringAsFixed(0)}',
                           icon: Icons.arrow_downward_rounded,
-                          iconColor: const Color(0xFF4ADE80),
+                          iconColor: const Color(0xFF34D399),
                         ),
                       ),
                       Container(
-                        height: 32,
+                        height: 34,
                         width: 1,
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: Colors.white.withValues(alpha: 0.2),
                         margin: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       Expanded(
@@ -269,18 +282,18 @@ class ProfileDataHeader extends StatelessWidget {
                           label: 'Expenses',
                           value: 'Rs. ${balanceState.expenseTotal.toStringAsFixed(0)}',
                           icon: Icons.arrow_upward_rounded,
-                          iconColor: const Color(0xFFF87171),
+                          iconColor: const Color(0xFFFB7185),
                         ),
                       ),
                       Container(
-                        height: 32,
+                        height: 34,
                         width: 1,
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: Colors.white.withValues(alpha: 0.2),
                         margin: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       Expanded(
                         child: _StatTile(
-                          label: 'Loans (Unpaid)',
+                          label: 'Loans',
                           value: 'Rs. ${balanceState.loanTotal.abs().toStringAsFixed(0)}',
                           icon: Icons.handshake_outlined,
                           iconColor: const Color(0xFFFBBF24),
@@ -320,17 +333,17 @@ class _DateFilterChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
                 ? Colors.white
-                : Colors.white.withValues(alpha: 0.12),
+                : Colors.white.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
                   ? Colors.white
-                  : Colors.white.withValues(alpha: 0.25),
-              width: 1,
+                  : Colors.white.withValues(alpha: 0.28),
+              width: 1.2,
             ),
           ),
           child: Row(
@@ -339,15 +352,15 @@ class _DateFilterChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 13,
-                color: isSelected ? Colors.black87 : Colors.white,
+                color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
               ),
               const SizedBox(width: 5),
               Text(
                 label,
-                style: TextStyle(
-                  color: isSelected ? Colors.black87 : Colors.white,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                style: GoogleFonts.plusJakartaSans(
+                  color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),
             ],
@@ -379,21 +392,25 @@ class _StatTile extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(3),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
+                color: iconColor.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: iconColor.withValues(alpha: 0.4),
+                  width: 1,
+                ),
               ),
               child: Icon(icon, color: iconColor, size: 12),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
             Flexible(
               child: Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.plusJakartaSans(
                   color: Colors.white.withValues(alpha: 0.85),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -401,20 +418,21 @@ class _StatTile extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
             value,
-            style: const TextStyle(
+            style: GoogleFonts.plusJakartaSans(
               color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.2,
             ),
           ),
         ),
       ],
     );
   }
-}
+}

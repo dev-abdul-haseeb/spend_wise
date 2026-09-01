@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
-import 'package:spend_wise/config/list_tile/list_tile.dart';
 import 'package:spend_wise/viewModel/bloc/income/income_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
@@ -19,8 +18,8 @@ class IncomeScreen extends StatefulWidget {
 }
 
 class _IncomeScreenState extends State<IncomeScreen> {
-
   late IncomeBloc _incomeBloc;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -30,209 +29,386 @@ class _IncomeScreenState extends State<IncomeScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _incomeBloc.close();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    var screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return BlocProvider(
-      create: (context) {
-        return _incomeBloc..add(GetIncome());
-      },
-      child: BlocBuilder<ThemeBloc,ThemeState>(
+      create: (context) => _incomeBloc..add(GetIncome()),
+      child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {
+          final incomeColor = themeState.theme[appColors.incomeColor]!;
+          final cardColor = themeState.theme[appColors.cardColor]!;
+          final textPrimary = themeState.theme[appColors.textPrimaryColor]!;
+          final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
+          final isDark = themeState.isDark;
+
           return Scaffold(
             backgroundColor: themeState.theme[appColors.appBGColor],
-            body: Center(
-              child: Stack(
-                children: [
-                  BlocBuilder<IncomeBloc, IncomeState>(
-                      builder: (context, incomestate) {
-                        switch(incomestate.incomeStatus) {
-                          case(IncomeStatus.loading):
-                            return Center(child: CircularProgressIndicator());
-                          case(IncomeStatus.failure):
-                            return Center(child: Text(incomestate.message.toString()));
-                          case(IncomeStatus.success):
-                            return incomestate.incomeModel.isEmpty
-                            ? Center(
-                              child: AppText(
-                                'No data found!',
-                                color: themeState.theme[appColors.textPrimaryColor]!,
-                                type: TextType.screenTitles,
-                              ),
-                            )
-                            : Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    style: TextStyle (
-                                      color: themeState.theme[appColors.accentColor]
+            body: Stack(
+              children: [
+                BlocBuilder<IncomeBloc, IncomeState>(
+                  builder: (context, incomestate) {
+                    switch (incomestate.incomeStatus) {
+                      case IncomeStatus.loading:
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: incomeColor,
+                          ),
+                        );
+                      case IncomeStatus.failure:
+                        return Center(
+                          child: Text(
+                            incomestate.message.toString(),
+                            style: TextStyle(color: textPrimary),
+                          ),
+                        );
+                      case IncomeStatus.success:
+                        return Column(
+                          children: [
+                            // Search bar
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: cardColor,
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withValues(alpha: 0.25)
+                                          : Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
                                     ),
-                                    decoration: InputDecoration(
-                                      hint: Text('Search by source'),
-                                      border: const OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(15)
-                                        ),
-                                      ),
-                                    ),
-                                    onChanged: (filterKey) {
-                                      context.read<IncomeBloc>().add(SearchItem(filterKey));
-                                    },
+                                  ],
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.06),
                                   ),
                                 ),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Row(
-                                    children: [
-                                      _filterChip(themeState, context, 'All', DateFilter.all, incomestate),
-                                      _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, incomestate),
-                                      _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, incomestate),
-                                      _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, incomestate),
-                                      _filterChip(themeState, context, '1 Year', DateFilter.oneYear, incomestate),
-                                    ],
+                                child: TextFormField(
+                                  controller: _searchController,
+                                  style: TextStyle(
+                                    color: textPrimary,
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-
-                                Expanded(
-                                  child: incomestate.searchMessage.isNotEmpty
-                                    ? Center(child: Text(incomestate.searchMessage))
-                                    : ListView.builder(
-                                      padding: EdgeInsets.only(bottom: screenHeight * 0.09),
-                                      itemCount: incomestate.filteredIncomeModel.isEmpty ? incomestate.incomeModel.length : incomestate.filteredIncomeModel.length,
-                                      itemBuilder: (context, index) {
-                                        final item = incomestate.filteredIncomeModel.isEmpty ? incomestate.incomeModel[index] : incomestate.filteredIncomeModel[index];
-                                        final hour = item.date_time!.hour.toString().padLeft(2, '0');
-                                        final minute = item.date_time!.minute.toString().padLeft(2, '0');
-                                        final second = item.date_time!.second.toString().padLeft(2, '0');
-                                        final day = item.date_time!.day;
-                                        final month = item.date_time!.month;
-                                        final year = item.date_time!.year;
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-                                          child: Dismissible(
-                                            key: Key(item.id),
-                                            direction: DismissDirection.endToStart,
-                                            onDismissed: (direction) {
-                                              context.read<IncomeBloc>().add(DeleteIncome(item.id));
+                                  decoration: InputDecoration(
+                                    hintText: 'Search by source...',
+                                    hintStyle: TextStyle(
+                                      color: textSecondary.withValues(alpha: 0.7),
+                                      fontSize: 14,
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search_rounded,
+                                      color: incomeColor,
+                                      size: 20,
+                                    ),
+                                    suffixIcon: _searchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear_rounded, size: 18),
+                                            onPressed: () {
+                                              _searchController.clear();
+                                              context.read<IncomeBloc>().add(SearchItem(''));
+                                              setState(() {});
                                             },
-                                            background: Container(
-                                              alignment: Alignment.centerRight,
-                                              padding: const EdgeInsets.only(right: 20),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              child: const Icon(Icons.delete, color: Colors.white),
-                                            ),
-                                            child: ListTile(
+                                          )
+                                        : null,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                    fillColor: Colors.transparent,
+                                  ),
+                                  onChanged: (filterKey) {
+                                    setState(() {});
+                                    context.read<IncomeBloc>().add(SearchItem(filterKey));
+                                  },
+                                ),
+                              ),
+                            ),
 
-                                              onTap: () {},
-                                              splashColor: themeState.theme[appColors.accentColor],
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              tileColor: themeState.theme[appColors.cardColor],
-                                              leading: CircleAvatar(
-                                                backgroundColor: listTileColors[index % listTileColors.length].withOpacity(0.5),
-                                                child: AppText(
-                                                  (index+1).toString(),
-                                                  color: themeState.theme[appColors.textPrimaryColor]!,
-                                                  type: TextType.transactionAmount,
+                            // Filter Chips
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                              child: Row(
+                                children: [
+                                  _filterChip(themeState, context, 'All', DateFilter.all, incomestate),
+                                  _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, incomestate),
+                                  _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, incomestate),
+                                  _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, incomestate),
+                                  _filterChip(themeState, context, '1 Year', DateFilter.oneYear, incomestate),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            // List or empty state
+                            Expanded(
+                              child: incomestate.incomeModel.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.account_balance_wallet_outlined,
+                                            size: 64,
+                                            color: textSecondary.withValues(alpha: 0.4),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          AppText(
+                                            'No income records found!',
+                                            color: textSecondary,
+                                            type: TextType.screenTitles,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : incomestate.searchMessage.isNotEmpty
+                                      ? Center(
+                                          child: Text(
+                                            incomestate.searchMessage,
+                                            style: TextStyle(color: textSecondary),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          physics: const BouncingScrollPhysics(),
+                                          padding: EdgeInsets.only(
+                                            left: 16,
+                                            right: 16,
+                                            top: 6,
+                                            bottom: screenHeight * 0.12,
+                                          ),
+                                          itemCount: incomestate.filteredIncomeModel.isEmpty
+                                              ? incomestate.incomeModel.length
+                                              : incomestate.filteredIncomeModel.length,
+                                          itemBuilder: (context, index) {
+                                            final item = incomestate.filteredIncomeModel.isEmpty
+                                                ? incomestate.incomeModel[index]
+                                                : incomestate.filteredIncomeModel[index];
+                                            final hour = item.date_time!.hour.toString().padLeft(2, '0');
+                                            final minute = item.date_time!.minute.toString().padLeft(2, '0');
+                                            final day = item.date_time!.day.toString().padLeft(2, '0');
+                                            final month = item.date_time!.month.toString().padLeft(2, '0');
+                                            final year = item.date_time!.year;
+
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                              child: Dismissible(
+                                                key: Key(item.id),
+                                                direction: DismissDirection.endToStart,
+                                                onDismissed: (direction) {
+                                                  context.read<IncomeBloc>().add(DeleteIncome(item.id));
+                                                },
+                                                background: Container(
+                                                  alignment: Alignment.centerRight,
+                                                  padding: const EdgeInsets.only(right: 20),
+                                                  decoration: BoxDecoration(
+                                                    gradient: const LinearGradient(
+                                                      colors: [Color(0xFFFB7185), Color(0xFFE11D48)],
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(20),
+                                                  ),
+                                                  child: const Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        'Delete',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 8),
+                                                      Icon(Icons.delete_outline_rounded, color: Colors.white),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                              title: AppText(
-                                                  'Rs. ${item.amount}',
-                                                color: themeState.theme[appColors.textPrimaryColor]!,
-                                                align: TextAlign.left,
-                                                type: TextType.balanceAmount,
-                                              ),
-                                              subtitle: AppText(
-                                                item.source.toString(),
-                                                color: themeState.theme[appColors.textSecondaryColor]!,
-                                                align: TextAlign.left,
-                                                type: TextType.transactionDescription,
-                                              ),
-                                              trailing: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    '$hour:$minute:$second',
-                                                    style: GoogleFonts.inter(
-                                                      fontWeight: FontWeight.bold,
-                                                      color: themeState.theme[appColors.textPrimaryColor]!
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: cardColor,
+                                                    borderRadius: BorderRadius.circular(20),
+                                                    border: Border.all(
+                                                      color: isDark
+                                                          ? Colors.white.withValues(alpha: 0.08)
+                                                          : Colors.black.withValues(alpha: 0.04),
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: isDark
+                                                            ? Colors.black.withValues(alpha: 0.25)
+                                                            : Colors.black.withValues(alpha: 0.03),
+                                                        blurRadius: 10,
+                                                        offset: const Offset(0, 3),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: ListTile(
+                                                    contentPadding: const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 6,
+                                                    ),
+                                                    leading: Container(
+                                                      width: 44,
+                                                      height: 44,
+                                                      decoration: BoxDecoration(
+                                                        color: incomeColor.withValues(alpha: 0.15),
+                                                        borderRadius: BorderRadius.circular(14),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.arrow_downward_rounded,
+                                                        color: incomeColor,
+                                                        size: 22,
+                                                      ),
+                                                    ),
+                                                    title: Text(
+                                                      item.source.toString(),
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        color: textPrimary,
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                    subtitle: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.access_time_rounded,
+                                                          size: 12,
+                                                          color: textSecondary,
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                          '$day/$month/$year • $hour:$minute',
+                                                          style: GoogleFonts.plusJakartaSans(
+                                                            color: textSecondary,
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    trailing: Text(
+                                                      '+Rs. ${item.amount}',
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        color: incomeColor,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w800,
+                                                        letterSpacing: -0.3,
+                                                      ),
                                                     ),
                                                   ),
-                                                  AppText(
-                                                    '$day/$month/$year',
-                                                    color: themeState.theme[appColors.textPrimaryColor]!,
-                                                    type: TextType.transactionDescription,
-                                                  ),
-                                                ],
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                  ),
-                                ),
-                              ],
+                                            );
+                                          },
+                                        ),
+                            ),
+                          ],
+                        );
+                    }
+                  },
+                ),
+
+                // Floating Glassmorphism Add Income Button
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GlassActionButton(
+                      text: 'Add Income',
+                      icon: Icons.add_rounded,
+                      accentColor: incomeColor,
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) {
+                            return AddIncomeDialog(
+                              themeState: themeState,
+                              incomeBloc: context.read<IncomeBloc>(),
                             );
-                        }
-                      }
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: screenHeight*0.02),
-                      child: AppButton(
-                        'Add income',
-                        bgcolor: themeState.theme[appColors.incomeColor]!,
-                        color: themeState.theme[appColors.textPrimaryColor]!,
-                        size: ButtonSize.large,
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (dialogContext) {
-                              return AddIncomeDialog(
-                                themeState: themeState,
-                                incomeBloc: context.read<IncomeBloc>(),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                          },
+                        );
+                      },
                     ),
-                  )
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           );
-        }
+        },
       ),
     );
   }
 
-  Widget _filterChip(ThemeState themeState,BuildContext context, String label, DateFilter filter, IncomeState state) {
+  Widget _filterChip(
+    ThemeState themeState,
+    BuildContext context,
+    String label,
+    DateFilter filter,
+    IncomeState state,
+  ) {
     final isSelected = state.selectedFilter == filter;
+    final incomeColor = themeState.theme[appColors.incomeColor]!;
+    final cardColor = themeState.theme[appColors.cardColor]!;
+    final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
+
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: FilterChip(
-        label: AppText(
-          label,
-          color: themeState.theme[appColors.primaryColor]!,
-          type: TextType.buttons,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.read<IncomeBloc>().add(FilterByDate(filter));
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected ? incomeColor : cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? incomeColor
+                    : themeState.isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.08),
+                width: 1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: incomeColor.withValues(alpha: 0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      )
+                    ]
+                  : null,
+            ),
+            child: Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                color: isSelected ? Colors.white : textSecondary,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
+          ),
         ),
-        selected: isSelected,
-        onSelected: (_) {
-          context.read<IncomeBloc>().add(FilterByDate(filter));
-        },
-        selectedColor: themeState.theme[appColors.accentColor],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:spend_wise/config/color/colors.dart';
 import 'package:spend_wise/config/components/button.dart';
 import 'package:spend_wise/config/components/textwidgets.dart';
@@ -35,7 +36,7 @@ class _LoanScreenState extends State<LoanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return BlocProvider.value(
       value: _loanBloc..add(GetLoan()),
@@ -46,341 +47,426 @@ class _LoanScreenState extends State<LoanScreen> {
           final textPrimary = themeState.theme[appColors.textPrimaryColor]!;
           final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
           final accent = themeState.theme[appColors.accentColor]!;
+          final isDark = themeState.isDark;
 
           return Scaffold(
             backgroundColor: themeState.theme[appColors.appBGColor],
-            body: Center(
-              child: Stack(
-                children: [
-                  BlocBuilder<LoanBloc, LoanState>(
-                    builder: (context, loanstate) {
-                      switch (loanstate.loanStatus) {
-                        case LoanStatus.loading:
-                          return const Center(child: CircularProgressIndicator());
-                        case LoanStatus.failure:
-                          return Center(child: Text(loanstate.message));
-                        case LoanStatus.success:
-                          if (loanstate.loanModel.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.handshake_outlined, size: 64, color: textSecondary.withValues(alpha: 0.5)),
-                                  const SizedBox(height: 12),
-                                  AppText(
-                                    'No loans recorded yet!',
+            body: Stack(
+              children: [
+                BlocBuilder<LoanBloc, LoanState>(
+                  builder: (context, loanstate) {
+                    switch (loanstate.loanStatus) {
+                      case LoanStatus.loading:
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: primary,
+                          ),
+                        );
+                      case LoanStatus.failure:
+                        return Center(
+                          child: Text(
+                            loanstate.message,
+                            style: TextStyle(color: textPrimary),
+                          ),
+                        );
+                      case LoanStatus.success:
+                        if (loanstate.loanModel.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.handshake_outlined,
+                                  size: 64,
+                                  color: textSecondary.withValues(alpha: 0.4),
+                                ),
+                                const SizedBox(height: 12),
+                                AppText(
+                                  'No loans recorded yet!',
+                                  color: textPrimary,
+                                  type: TextType.screenTitles,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Use Give Loan or Take Loan below to add one',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: textSecondary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final loansToDisplay = loanstate.displayedLoans;
+
+                        return Column(
+                          children: [
+                            // Search bar
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: cardColor,
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDark
+                                          ? Colors.black.withValues(alpha: 0.25)
+                                          : Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.06),
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  style: TextStyle(
                                     color: textPrimary,
-                                    type: TextType.screenTitles,
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Use Give Loan or Take Loan below to add one',
-                                    style: TextStyle(color: textSecondary, fontSize: 13),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search by person or reason...',
+                                    hintStyle: TextStyle(
+                                      color: textSecondary.withValues(alpha: 0.7),
+                                      fontSize: 14,
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search_rounded,
+                                      color: primary,
+                                      size: 20,
+                                    ),
+                                    suffixIcon: _searchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear_rounded, size: 18),
+                                            onPressed: () {
+                                              _searchController.clear();
+                                              context.read<LoanBloc>().add(SearchItem(''));
+                                              setState(() {});
+                                            },
+                                          )
+                                        : null,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                    fillColor: Colors.transparent,
                                   ),
+                                  onChanged: (filterKey) {
+                                    setState(() {});
+                                    context.read<LoanBloc>().add(SearchItem(filterKey));
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // Filter Chips
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                              child: Row(
+                                children: [
+                                  _filterChip(context, 'All', LoanStatusFilter.all, loanstate, themeState),
+                                  _filterChip(context, 'Paid', LoanStatusFilter.paid, loanstate, themeState),
+                                  _filterChip(context, 'Unpaid', LoanStatusFilter.unpaid, loanstate, themeState),
                                 ],
                               ),
-                            );
-                          }
+                            ),
 
-                          final loansToDisplay = loanstate.displayedLoans;
+                            const SizedBox(height: 6),
 
-                          return Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: cardColor,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.04),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
+                            Expanded(
+                              child: loanstate.searchMessage.isNotEmpty || loansToDisplay.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.search_off_rounded,
+                                            size: 54,
+                                            color: textSecondary.withValues(alpha: 0.4),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            loanstate.searchMessage.isNotEmpty
+                                                ? loanstate.searchMessage
+                                                : 'No matching loans found',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: textSecondary,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  child: TextField(
-                                    controller: _searchController,
-                                    style: TextStyle(color: textPrimary, fontSize: 14),
-                                    decoration: InputDecoration(
-                                      hintText: 'Search by person or reason...',
-                                      hintStyle: TextStyle(color: textSecondary, fontSize: 14),
-                                      prefixIcon: Icon(Icons.search_rounded, color: primary),
-                                      suffixIcon: _searchController.text.isNotEmpty
-                                          ? IconButton(
-                                              icon: const Icon(Icons.clear_rounded, size: 18),
-                                              onPressed: () {
-                                                _searchController.clear();
-                                                context.read<LoanBloc>().add(SearchItem(''));
-                                              },
-                                            )
-                                          : null,
-                                      border: InputBorder.none,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                    ),
-                                    onChanged: (filterKey) {
-                                      context.read<LoanBloc>().add(SearchItem(filterKey));
-                                    },
-                                  ),
-                                ),
-                              ),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
-                                child: Row(
-                                  children: [
-                                    _filterChip(context, 'All', LoanStatusFilter.all, loanstate, themeState),
-                                    _filterChip(context, 'Paid', LoanStatusFilter.paid, loanstate, themeState),
-                                    _filterChip(context, 'Unpaid', LoanStatusFilter.unpaid, loanstate, themeState),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: loanstate.searchMessage.isNotEmpty || loansToDisplay.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.search_off_rounded, size: 48, color: textSecondary),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              loanstate.searchMessage.isNotEmpty
-                                                  ? loanstate.searchMessage
-                                                  : 'No matching loans found',
-                                              style: TextStyle(color: textSecondary, fontSize: 14),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : ListView.builder(
-                                        padding: EdgeInsets.fromLTRB(12, 6, 12, screenHeight * 0.12),
-                                        itemCount: loansToDisplay.length,
-                                        itemBuilder: (context, index) {
-                                          final item = loansToDisplay[index];
-                                          final dateTime = item.date_time ?? DateTime.now();
-                                          final isPaid = item.status == loanStatus.Paid;
-                                          final isToGive = item.amount > 0;
+                                    )
+                                  : ListView.builder(
+                                      physics: const BouncingScrollPhysics(),
+                                      padding: EdgeInsets.fromLTRB(16, 6, 16, screenHeight * 0.12),
+                                      itemCount: loansToDisplay.length,
+                                      itemBuilder: (context, index) {
+                                        final item = loansToDisplay[index];
+                                        final dateTime = item.date_time ?? DateTime.now();
+                                        final isPaid = item.status == loanStatus.Paid;
+                                        final isToGive = item.amount > 0;
+                                        final itemColor = isPaid
+                                            ? const Color(0xFF10B981)
+                                            : (isToGive ? accent : primary);
 
-                                          return Card(
-                                            margin: const EdgeInsets.only(bottom: 10),
+                                        return Container(
+                                          margin: const EdgeInsets.only(bottom: 10),
+                                          decoration: BoxDecoration(
                                             color: cardColor,
-                                            elevation: 2,
-                                            shadowColor: Colors.black.withValues(alpha: 0.05),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(16),
-                                              side: BorderSide(
-                                                color: isPaid
-                                                    ? Colors.green.withValues(alpha: 0.3)
-                                                    : primary.withValues(alpha: 0.1),
-                                              ),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: isPaid
+                                                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                                                  : isDark
+                                                      ? Colors.white.withValues(alpha: 0.08)
+                                                      : Colors.black.withValues(alpha: 0.04),
                                             ),
-                                            child: InkWell(
-                                              borderRadius: BorderRadius.circular(16),
-                                              onLongPress: isPaid
-                                                  ? null
-                                                  : () {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (dialogContext) => AlertDialog(
-                                                          backgroundColor: cardColor,
-                                                          shape: RoundedRectangleBorder(
-                                                            borderRadius: BorderRadius.circular(18),
-                                                          ),
-                                                          title: const Text('Mark as Paid'),
-                                                          content: Text('Mark loan for "${item.person_name}" as paid?'),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () => Navigator.of(dialogContext).pop(),
-                                                              child: Text('Cancel', style: TextStyle(color: textSecondary)),
-                                                            ),
-                                                            ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: Colors.green,
-                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                                              ),
-                                                              onPressed: () {
-                                                                _loanBloc.add(PayLoan(item.id));
-                                                                Navigator.of(dialogContext).pop();
-                                                              },
-                                                              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
-                                                            ),
-                                                          ],
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: isDark
+                                                    ? Colors.black.withValues(alpha: 0.25)
+                                                    : Colors.black.withValues(alpha: 0.03),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(20),
+                                            onLongPress: isPaid
+                                                ? null
+                                                : () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (dialogContext) => AlertDialog(
+                                                        backgroundColor: cardColor,
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(20),
                                                         ),
-                                                      );
-                                                    },
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(14.0),
-                                                child: Row(
-                                                  children: [
-                                                    Container(
-                                                      width: 44,
-                                                      height: 44,
-                                                      decoration: BoxDecoration(
-                                                        color: (isPaid ? Colors.green : (isToGive ? accent : primary))
-                                                            .withValues(alpha: 0.15),
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      child: Icon(
-                                                        isPaid
-                                                            ? Icons.check_circle_rounded
-                                                            : (isToGive ? Icons.call_made_rounded : Icons.call_received_rounded),
-                                                        color: isPaid ? Colors.green : (isToGive ? accent : primary),
-                                                        size: 22,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Row(
-                                                            children: [
-                                                              Expanded(
-                                                                child: Text(
-                                                                  item.person_name,
-                                                                  style: TextStyle(
-                                                                    fontSize: 15,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: textPrimary,
-                                                                  ),
-                                                                  maxLines: 1,
-                                                                  overflow: TextOverflow.ellipsis,
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                                decoration: BoxDecoration(
-                                                                  color: (isPaid ? Colors.green : (isToGive ? Colors.blue : Colors.orange))
-                                                                      .withValues(alpha: 0.15),
-                                                                  borderRadius: BorderRadius.circular(8),
-                                                                ),
-                                                                child: Text(
-                                                                  isPaid ? 'PAID' : (isToGive ? 'TO GIVE' : 'TO TAKE'),
-                                                                  style: TextStyle(
-                                                                    fontSize: 10,
-                                                                    fontWeight: FontWeight.bold,
-                                                                    color: isPaid ? Colors.green : (isToGive ? Colors.blue : Colors.orange),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
+                                                        title: Text(
+                                                          'Mark as Paid',
+                                                          style: GoogleFonts.plusJakartaSans(
+                                                            fontWeight: FontWeight.w800,
                                                           ),
-                                                          if (item.reason.trim().isNotEmpty) ...[
-                                                            const SizedBox(height: 3),
-                                                            Text(
-                                                              item.reason,
-                                                              style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: textSecondary,
-                                                                fontStyle: FontStyle.italic,
-                                                              ),
-                                                              maxLines: 2,
-                                                              overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        content: Text(
+                                                          'Mark loan for "${item.person_name}" as settled and paid?',
+                                                          style: GoogleFonts.plusJakartaSans(),
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () => Navigator.of(dialogContext).pop(),
+                                                            child: Text(
+                                                              'Cancel',
+                                                              style: TextStyle(color: textSecondary),
                                                             ),
-                                                          ],
-                                                          const SizedBox(height: 4),
-                                                          Text(
-                                                            '${dateTime.day}/${dateTime.month}/${dateTime.year} • ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
-                                                            style: TextStyle(
-                                                              fontSize: 11,
-                                                              color: textSecondary.withValues(alpha: 0.8),
+                                                          ),
+                                                          ElevatedButton(
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: const Color(0xFF10B981),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                            ),
+                                                            onPressed: () {
+                                                              _loanBloc.add(PayLoan(item.id));
+                                                              Navigator.of(dialogContext).pop();
+                                                            },
+                                                            child: const Text(
+                                                              'Confirm',
+                                                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                                             ),
                                                           ),
                                                         ],
                                                       ),
+                                                    );
+                                                  },
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(14.0),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 44,
+                                                    height: 44,
+                                                    decoration: BoxDecoration(
+                                                      color: itemColor.withValues(alpha: 0.15),
+                                                      borderRadius: BorderRadius.circular(14),
                                                     ),
-                                                    const SizedBox(width: 10),
-                                                    Text(
-                                                      'Rs. ${item.amount.abs().toStringAsFixed(0)}',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: isPaid ? Colors.green : (isToGive ? accent : primary),
-                                                      ),
+                                                    child: Icon(
+                                                      isPaid
+                                                          ? Icons.check_circle_rounded
+                                                          : (isToGive
+                                                              ? Icons.call_made_rounded
+                                                              : Icons.call_received_rounded),
+                                                      color: itemColor,
+                                                      size: 22,
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text(
+                                                                item.person_name,
+                                                                style: GoogleFonts.plusJakartaSans(
+                                                                  fontSize: 15,
+                                                                  fontWeight: FontWeight.w700,
+                                                                  color: textPrimary,
+                                                                ),
+                                                                maxLines: 1,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                              decoration: BoxDecoration(
+                                                                color: itemColor.withValues(alpha: 0.15),
+                                                                borderRadius: BorderRadius.circular(10),
+                                                              ),
+                                                              child: Text(
+                                                                isPaid
+                                                                    ? 'PAID'
+                                                                    : (isToGive ? 'TO GIVE' : 'TO TAKE'),
+                                                                style: GoogleFonts.plusJakartaSans(
+                                                                  fontSize: 10,
+                                                                  fontWeight: FontWeight.w800,
+                                                                  color: itemColor,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        if (item.reason.trim().isNotEmpty) ...[
+                                                          const SizedBox(height: 3),
+                                                          Text(
+                                                            item.reason,
+                                                            style: GoogleFonts.plusJakartaSans(
+                                                              fontSize: 12.5,
+                                                              color: textSecondary,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                        const SizedBox(height: 4),
+                                                        Row(
+                                                          children: [
+                                                            Icon(
+                                                              Icons.access_time_rounded,
+                                                              size: 11,
+                                                              color: textSecondary,
+                                                            ),
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              '${dateTime.day}/${dateTime.month}/${dateTime.year} • ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
+                                                              style: GoogleFonts.plusJakartaSans(
+                                                                fontSize: 11,
+                                                                color: textSecondary.withValues(alpha: 0.8),
+                                                                fontWeight: FontWeight.w500,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Text(
+                                                    'Rs. ${item.amount.abs().toStringAsFixed(0)}',
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: itemColor,
+                                                      letterSpacing: -0.3,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                            ],
-                          );
-                      }
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      padding: EdgeInsets.fromLTRB(16, 8, 16, screenHeight * 0.02),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            themeState.theme[appColors.appBGColor]!.withValues(alpha: 0.0),
-                            themeState.theme[appColors.appBGColor]!,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
                           ],
+                        );
+                    }
+                  },
+                ),
+
+                // Floating Glassmorphic Dual Action Buttons
+                Positioned(
+                  bottom: 12,
+                  left: 16,
+                  right: 16,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GlassActionButton(
+                          text: 'Give Loan',
+                          icon: Icons.arrow_upward_rounded,
+                          accentColor: accent,
+                          width: double.infinity,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AddLoanDialog(
+                                  themeState: themeState,
+                                  loanBloc: _loanBloc,
+                                  title: 'Give Loan',
+                                  take: false,
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: AppButton(
-                              'Give Loan',
-                              bgcolor: accent,
-                              color: themeState.theme[appColors.textSecondaryColor]!,
-                              type: ButtonType.primary,
-                              size: ButtonSize.medium,
-                              leadingIcon: Icons.arrow_upward_rounded,
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (dialogContext) {
-                                    return AddLoanDialog(
-                                      themeState: themeState,
-                                      loanBloc: _loanBloc,
-                                      title: 'Give Loan',
-                                      take: false,
-                                    );
-                                  },
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GlassActionButton(
+                          text: 'Take Loan',
+                          icon: Icons.arrow_downward_rounded,
+                          accentColor: primary,
+                          width: double.infinity,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AddLoanDialog(
+                                  themeState: themeState,
+                                  loanBloc: _loanBloc,
+                                  title: 'Take Loan',
+                                  take: true,
                                 );
                               },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AppButton(
-                              'Take Loan',
-                              bgcolor: primary,
-                              color: themeState.theme[appColors.textSecondaryColor]!,
-                              type: ButtonType.primary,
-                              size: ButtonSize.medium,
-                              leadingIcon: Icons.arrow_downward_rounded,
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (dialogContext) {
-                                    return AddLoanDialog(
-                                      themeState: themeState,
-                                      loanBloc: _loanBloc,
-                                      title: 'Take Loan',
-                                      take: true,
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -402,24 +488,43 @@ class _LoanScreenState extends State<LoanScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: FilterChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.white : textSecondary,
-          ),
-        ),
-        selected: isSelected,
-        showCheckmark: false,
-        onSelected: (_) => context.read<LoanBloc>().add(FilterbyStatus(filter)),
-        selectedColor: primary,
-        backgroundColor: cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected ? primary : textSecondary.withValues(alpha: 0.2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => context.read<LoanBloc>().add(FilterbyStatus(filter)),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected ? primary : cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? primary
+                    : themeState.isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.08),
+                width: 1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: primary.withValues(alpha: 0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      )
+                    ]
+                  : null,
+            ),
+            child: Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                color: isSelected ? Colors.white : textSecondary,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),

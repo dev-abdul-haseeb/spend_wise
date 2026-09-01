@@ -40,15 +40,62 @@ class MyApp extends StatelessWidget {
             initialRoute: RouteNames.splashScreen,
             onGenerateRoute: Routes.generateRoute,
             theme: ThemeData(
-              textTheme: TextTheme(
-                bodyMedium: TextStyle(
-                  color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.primaryColor]
+              useMaterial3: true,
+              brightness: themeState.isDark ? Brightness.dark : Brightness.light,
+              scaffoldBackgroundColor: themeState.theme[appColors.appBGColor],
+              primaryColor: themeState.theme[appColors.primaryColor],
+              cardColor: themeState.theme[appColors.cardColor],
+              colorScheme: ColorScheme(
+                brightness: themeState.isDark ? Brightness.dark : Brightness.light,
+                primary: themeState.theme[appColors.primaryColor]!,
+                onPrimary: Colors.white,
+                secondary: themeState.theme[appColors.accentColor]!,
+                onSecondary: Colors.black,
+                error: themeState.theme[appColors.expenseColor]!,
+                onError: Colors.white,
+                surface: themeState.theme[appColors.cardColor]!,
+                onSurface: themeState.theme[appColors.textPrimaryColor]!,
+              ),
+              dialogTheme: DialogThemeData(
+                backgroundColor: themeState.theme[appColors.cardColor],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
+                elevation: 16,
               ),
               inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: themeState.isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.withValues(alpha: 0.06),
                 hintStyle: TextStyle(
-                  color: themeState.isDark ? themeState.theme[appColors.accentColor] : themeState.theme[appColors.primaryColor]
+                  color: themeState.theme[appColors.textSecondaryColor],
+                  fontSize: 14,
                 ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: themeState.isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.2),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: themeState.isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.2),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: themeState.theme[appColors.primaryColor]!,
+                    width: 1.8,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
           );

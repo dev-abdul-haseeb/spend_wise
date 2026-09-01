@@ -49,17 +49,17 @@ class AppText extends StatelessWidget {
   TextStyle _getGoogleFontStyle() {
     switch (type) {
       case TextType.appName:
-        return GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800);
       case TextType.screenTitles:
-        return GoogleFonts.playfairDisplay(fontWeight: FontWeight.w400, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700);
       case TextType.balanceAmount:
-        return GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800);
       case TextType.transactionAmount:
-        return GoogleFonts.sourceSans3(fontWeight: FontWeight.normal, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600);
       case TextType.transactionDescription:
-        return GoogleFonts.sourceSans3(fontWeight: FontWeight.normal, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500);
       case TextType.buttons:
-        return GoogleFonts.sourceSans3(fontWeight: FontWeight.normal, );
+        return GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600);
     }
   }
 

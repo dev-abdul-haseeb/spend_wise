@@ -100,9 +100,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                           return AppButton(
                             'Send link',
-                            color: themeState.theme[appColors.textSecondaryColor]!,
-                            bgcolor: themeState.theme[appColors.accentColor]!,
-                            isLoading: isLoading,type: ButtonType.primary,
+                            color: Colors.white,
+                            bgcolor: themeState.theme[appColors.primaryColor]!,
+                            isLoading: isLoading,
+                            type: ButtonType.primary,
                             size: ButtonSize.small,
                             onPressed: isLoading
                                 ? null
