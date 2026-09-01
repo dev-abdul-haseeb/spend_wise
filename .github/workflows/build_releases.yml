@@ -6,10 +6,18 @@ on:
       - master
       - main
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        default: 'v0.0.0'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -76,11 +84,17 @@ jobs:
       - name: Build Web (Release)
         run: flutter build web --release
 
+      - name: Archive Web Release
+        shell: bash
+        run: |
+          cd build/web
+          zip -r ../../spend-wise-web-release.zip .
+
       - name: Upload Web Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: spend-wise-web-release
-          path: build/web
+          path: spend-wise-web-release.zip
           if-no-files-found: error
 
   # ---------------------------------------------------------------------------
@@ -131,3 +145,30 @@ jobs:
           name: spend-wise-windows-release
           path: spend-wise-windows-release.zip
           if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # 4. CREATE GITHUB RELEASE (only when manually triggered)
+  # ---------------------------------------------------------------------------
+  create-release:
+    name: Create GitHub Release
+    needs: [build-android, build-web, build-windows]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display Downloaded Files
+        run: ls -R artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: Release ${{ github.event.inputs.release_tag }}
+          files: |
+            artifacts/spend-wise-android-apk/app-release.apk
+            artifacts/spend-wise-web-release/spend-wise-web-release.zip
+            artifacts/spend-wise-windows-release/spend-wise-windows-release.zip
