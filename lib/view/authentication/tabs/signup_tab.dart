@@ -20,6 +20,11 @@ class _SignupTabState extends State<SignupTab> {
 
   final _formKey = GlobalKey<FormState>();
 
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+    context.read<AuthBloc>().add(AuthSignUp());
+  }
+
   final List<FocusNode> nodes = [
     FocusNode(), // Name: 0
     FocusNode(), // Occupation: 1
@@ -220,12 +225,16 @@ class _SignupTabState extends State<SignupTab> {
                                     ),
                                   ),
                                 ),
+                                textInputAction: index == nodes.length - 1
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
                                 onChanged: (newValue) => context
                                     .read<AuthBloc>()
                                     .add(_eventForIndex(index, newValue)),
                                 onFieldSubmitted: (_) {
                                   if (index == nodes.length - 1) {
                                     FocusScope.of(context).unfocus();
+                                    _submitForm();
                                   } else {
                                     FocusScope.of(context).requestFocus(nodes[index + 1]);
                                   }
@@ -248,12 +257,7 @@ class _SignupTabState extends State<SignupTab> {
                           bgcolor: themeState.theme[appColors.primaryColor]!,
                           isLoading: isLoading,
                           type: ButtonType.primary,
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  if (!_formKey.currentState!.validate()) return;
-                                  context.read<AuthBloc>().add(AuthSignUp());
-                                },
+                          onPressed: isLoading ? null : _submitForm,
                         );
                       },
                     ),

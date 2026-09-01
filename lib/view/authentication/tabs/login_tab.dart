@@ -22,6 +22,12 @@ class _LoginTabState extends State<LoginTab> {
 
   bool _loginAttempted = false;
 
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+    _loginAttempted = true;
+    context.read<AuthBloc>().add(AuthLogin());
+  }
+
   final _formKey = GlobalKey<FormState>();
 
   final List<FocusNode> nodes = [
@@ -216,63 +222,61 @@ class _LoginTabState extends State<LoginTab> {
                                     ),
                                   ),
                                 ),
+                                textInputAction: index == nodes.length - 1
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
                                 onChanged: (newValue) => context
                                     .read<AuthBloc>()
                                     .add(_eventForIndex(index, newValue)),
                                 onFieldSubmitted: (_) {
                                   if (index == nodes.length - 1) {
                                     FocusScope.of(context).unfocus();
+                                    _submitForm();
                                   } else {
                                     FocusScope.of(context).requestFocus(nodes[index + 1]);
                                   }
                                 },
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    }),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.resetPasswordScreen);
-                        },
-                        child: BlocBuilder<ThemeBloc, ThemeState>(
-                          builder: (context, state) {
-                            return AppText(
-                              'Forgot Password?',
-                              color: state.theme[appColors.primaryColor]!,
-                              type: TextType.buttons,
+                              ),
                             );
                           },
+                        );
+                      }),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pushNamed(context, RouteNames.resetPasswordScreen);
+                          },
+                          child: BlocBuilder<ThemeBloc, ThemeState>(
+                            builder: (context, state) {
+                              return AppText(
+                                'Forgot Password?',
+                                color: state.theme[appColors.primaryColor]!,
+                                type: TextType.buttons,
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: screenHeight * 0.03),
-                    BlocBuilder<AuthBloc, AuthState>(
-                      buildWhen: (previous, current) =>
-                          previous.currentState != current.currentState,
-                      builder: (context, state) {
-                        final isLoading = state.currentState == AuthStates.Loading;
-                        return AppButton(
-                          'Login',
-                          color: Colors.white,
-                          bgcolor: themeState.theme[appColors.primaryColor]!,
-                          isLoading: isLoading,
-                          type: ButtonType.primary,
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  if (!_formKey.currentState!.validate()) return;
-                                  _loginAttempted = true;
-                                  context.read<AuthBloc>().add(AuthLogin());
-                                },
-                        );
-                      },
-                    ),
-                    SizedBox(height: screenHeight * 0.04),
-                  ],
+                      SizedBox(height: screenHeight * 0.03),
+                      BlocBuilder<AuthBloc, AuthState>(
+                        buildWhen: (previous, current) =>
+                            previous.currentState != current.currentState,
+                        builder: (context, state) {
+                          final isLoading = state.currentState == AuthStates.Loading;
+                          return AppButton(
+                            'Login',
+                            color: Colors.white,
+                            bgcolor: themeState.theme[appColors.primaryColor]!,
+                            isLoading: isLoading,
+                            type: ButtonType.primary,
+                            onPressed: isLoading ? null : _submitForm,
+                          );
+                        },
+                      ),
+                      SizedBox(height: screenHeight * 0.04),
+                    ],
                 ),
               ),
             ),

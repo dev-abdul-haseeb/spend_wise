@@ -17,6 +17,12 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _resetAttempted = false;
+
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+    _resetAttempted = true;
+    context.read<AuthBloc>().add(ResetPassword());
+  }
   final _formKey = GlobalKey<FormState>();
   final FocusNode _emailNode = FocusNode();
 
@@ -143,8 +149,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               ),
                             ),
                           ),
+                          textInputAction: TextInputAction.done,
                           onChanged: (value) {
                             context.read<AuthBloc>().add(EmailChanged(email: value));
+                          },
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context).unfocus();
+                            _submitForm();
                           },
                         ),
                       ),
@@ -162,13 +173,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             isLoading: isLoading,
                             type: ButtonType.primary,
                             size: ButtonSize.small,
-                            onPressed: isLoading
-                                ? null
-                                : () {
-                              if (!_formKey.currentState!.validate()) return;
-                              _resetAttempted = true;
-                              context.read<AuthBloc>().add(ResetPassword());
-                            },
+                            onPressed: isLoading ? null : _submitForm,
                           );
                         },
                       ),

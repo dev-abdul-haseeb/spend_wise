@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -35,17 +36,11 @@ class AppUpdateService {
         final releaseNotes = data['body'] as String? ?? '';
         final htmlUrl = data['html_url'] as String? ?? '';
 
-        // Find direct .apk download link if available in assets
+        // Select platform-specific release asset download URL (Windows release vs Android APK vs Web)
         String downloadUrl = htmlUrl;
         final assets = data['assets'] as List<dynamic>?;
         if (assets != null && assets.isNotEmpty) {
-          for (final asset in assets) {
-            final name = (asset['name'] as String? ?? '').toLowerCase();
-            if (name.endsWith('.apk')) {
-              downloadUrl = asset['browser_download_url'] as String? ?? htmlUrl;
-              break;
-            }
-          }
+          downloadUrl = _getPlatformSpecificAssetUrl(assets, htmlUrl);
         }
 
         final packageInfo = await PackageInfo.fromPlatform();
@@ -286,5 +281,62 @@ class AppUpdateService {
         );
       },
     );
+  }
+
+  /// Selects the appropriate release asset download URL for the current platform
+  static String _getPlatformSpecificAssetUrl(
+    List<dynamic> assets,
+    String defaultHtmlUrl,
+  ) {
+    if (kIsWeb) {
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.contains('web')) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.windows) {
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.endsWith('.exe') ||
+            name.endsWith('.msi') ||
+            (name.contains('windows') && name.endsWith('.zip'))) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+      // General zip fallback for Windows desktop builds
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.endsWith('.zip')) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.endsWith('.apk') || name.endsWith('.aab')) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.endsWith('.dmg') ||
+            name.endsWith('.pkg') ||
+            (name.contains('mac') && name.endsWith('.zip'))) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.linux) {
+      for (final asset in assets) {
+        final name = (asset['name'] as String? ?? '').toLowerCase();
+        if (name.endsWith('.appimage') ||
+            name.endsWith('.deb') ||
+            (name.contains('linux') && name.endsWith('.zip'))) {
+          return asset['browser_download_url'] as String? ?? defaultHtmlUrl;
+        }
+      }
+    }
+    return defaultHtmlUrl;
   }
 }
