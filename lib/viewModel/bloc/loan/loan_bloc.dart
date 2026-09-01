@@ -25,12 +25,22 @@ class LoanBloc extends Bloc<LoanEvent, LoanState> {
   ) {
     var result = loans;
 
-    // Filter by status if not All
-    if (filter != LoanStatusFilter.all) {
-      final targetStatus = filter == LoanStatusFilter.paid
-          ? loanStatus.Paid
-          : loanStatus.Unpaid;
-      result = result.where((element) => element.status == targetStatus).toList();
+    // Filter by status or direction if not All
+    switch (filter) {
+      case LoanStatusFilter.all:
+        break;
+      case LoanStatusFilter.paid:
+        result = result.where((element) => element.status == loanStatus.Paid).toList();
+        break;
+      case LoanStatusFilter.unpaid:
+        result = result.where((element) => element.status == loanStatus.Unpaid).toList();
+        break;
+      case LoanStatusFilter.toGive:
+        result = result.where((element) => element.amount < 0).toList();
+        break;
+      case LoanStatusFilter.toTake:
+        result = result.where((element) => element.amount > 0).toList();
+        break;
     }
 
     // Filter by search query (person name or reason)

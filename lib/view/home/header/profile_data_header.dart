@@ -259,7 +259,7 @@ class ProfileDataHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
 
-                  // Three Stat Tiles: Income (filtered), Expenses (filtered), Loans (overall)
+                  // Four Stat Tiles: Income, Expenses, Savings, Loans
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -272,10 +272,10 @@ class ProfileDataHeader extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        height: 34,
+                        height: 32,
                         width: 1,
                         color: Colors.white.withValues(alpha: 0.2),
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                       Expanded(
                         child: _StatTile(
@@ -286,10 +286,26 @@ class ProfileDataHeader extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        height: 34,
+                        height: 32,
                         width: 1,
                         color: Colors.white.withValues(alpha: 0.2),
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                      Expanded(
+                        child: _StatTile(
+                          label: 'Savings',
+                          value: 'Rs. ${(balanceState.incomeTotal - balanceState.expenseTotal).toStringAsFixed(0)}',
+                          icon: Icons.savings_outlined,
+                          iconColor: (balanceState.incomeTotal - balanceState.expenseTotal) >= 0
+                              ? const Color(0xFF38BDF8)
+                              : const Color(0xFFFB7185),
+                        ),
+                      ),
+                      Container(
+                        height: 32,
+                        width: 1,
+                        color: Colors.white.withValues(alpha: 0.2),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                       Expanded(
                         child: _StatTile(

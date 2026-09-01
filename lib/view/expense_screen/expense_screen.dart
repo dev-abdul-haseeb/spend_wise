@@ -8,6 +8,7 @@ import '../../config/components/button.dart';
 import '../../config/components/textwidgets.dart';
 import '../../config/enum/enum.dart';
 import '../../viewModel/bloc/theme/theme_bloc.dart';
+import '../home/header/profile_data_header.dart';
 import 'dialog/add_expense_dialog.dart';
 
 class ExpenseScreen extends StatefulWidget {
@@ -73,298 +74,320 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               children: [
                 BlocBuilder<ExpenseBloc, ExpenseState>(
                   builder: (context, expensestate) {
-                    switch (expensestate.expenseStatus) {
-                      case ExpenseStatus.loading:
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: expenseColor,
+                    if (expensestate.expenseStatus == ExpenseStatus.loading) {
+                      return Center(
+                        child: CircularProgressIndicator(color: expenseColor),
+                      );
+                    }
+                    if (expensestate.expenseStatus == ExpenseStatus.failure) {
+                      return Center(
+                        child: Text(
+                          expensestate.message.toString(),
+                          style: TextStyle(color: textPrimary),
+                        ),
+                      );
+                    }
+
+                    final items = expensestate.filteredExpenseModel.isEmpty
+                        ? expensestate.expenseModel
+                        : expensestate.filteredExpenseModel;
+
+                    return CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        // Top Balance & Savings Card
+                        const SliverToBoxAdapter(
+                          child: ProfileDataHeader(),
+                        ),
+
+                        // Search Bar
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: cardColor,
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? Colors.black.withValues(alpha: 0.25)
+                                        : Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                ),
+                              ),
+                              child: TextFormField(
+                                controller: _searchController,
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search expenses...',
+                                  hintStyle: TextStyle(
+                                    color: textSecondary.withValues(alpha: 0.7),
+                                    fontSize: 14,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: expenseColor,
+                                    size: 20,
+                                  ),
+                                  suffixIcon: _searchController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear_rounded, size: 18),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            context.read<ExpenseBloc>().add(SearchItem(''));
+                                            setState(() {});
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  fillColor: Colors.transparent,
+                                ),
+                                onChanged: (filterKey) {
+                                  setState(() {});
+                                  context.read<ExpenseBloc>().add(SearchItem(filterKey));
+                                },
+                              ),
+                            ),
                           ),
-                        );
-                      case ExpenseStatus.failure:
-                        return Center(
-                          child: Text(
-                            expensestate.message.toString(),
-                            style: TextStyle(color: textPrimary),
+                        ),
+
+                        // Date Filter Chips
+                        SliverToBoxAdapter(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                            child: Row(
+                              children: [
+                                _filterChip(themeState, context, 'All', DateFilter.all, expensestate),
+                                _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, expensestate),
+                                _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, expensestate),
+                                _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, expensestate),
+                                _filterChip(themeState, context, '1 Year', DateFilter.oneYear, expensestate),
+                              ],
+                            ),
                           ),
-                        );
-                      case ExpenseStatus.success:
-                        return Column(
-                          children: [
-                            // Search bar
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: cardColor,
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isDark
-                                          ? Colors.black.withValues(alpha: 0.25)
-                                          : Colors.black.withValues(alpha: 0.04),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
+                        ),
+
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 6),
+                        ),
+
+                        // Empty State or List items
+                        if (expensestate.expenseModel.isEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 40.0),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.shopping_cart_outlined,
+                                      size: 64,
+                                      color: textSecondary.withValues(alpha: 0.4),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    AppText(
+                                      'No expenses recorded yet!',
+                                      color: textSecondary,
+                                      type: TextType.screenTitles,
                                     ),
                                   ],
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.06),
-                                  ),
-                                ),
-                                child: TextFormField(
-                                  controller: _searchController,
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Search expenses...',
-                                    hintStyle: TextStyle(
-                                      color: textSecondary.withValues(alpha: 0.7),
-                                      fontSize: 14,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search_rounded,
-                                      color: expenseColor,
-                                      size: 20,
-                                    ),
-                                    suffixIcon: _searchController.text.isNotEmpty
-                                        ? IconButton(
-                                            icon: const Icon(Icons.clear_rounded, size: 18),
-                                            onPressed: () {
-                                              _searchController.clear();
-                                              context.read<ExpenseBloc>().add(SearchItem(''));
-                                              setState(() {});
-                                            },
-                                          )
-                                        : null,
-                                    border: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                    fillColor: Colors.transparent,
-                                  ),
-                                  onChanged: (filterKey) {
-                                    setState(() {});
-                                    context.read<ExpenseBloc>().add(SearchItem(filterKey));
-                                  },
                                 ),
                               ),
                             ),
-
-                            // Filter Chips
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                              child: Row(
-                                children: [
-                                  _filterChip(themeState, context, 'All', DateFilter.all, expensestate),
-                                  _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, expensestate),
-                                  _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, expensestate),
-                                  _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, expensestate),
-                                  _filterChip(themeState, context, '1 Year', DateFilter.oneYear, expensestate),
-                                ],
+                          )
+                        else if (expensestate.searchMessage.isNotEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 40.0),
+                              child: Center(
+                                child: Text(
+                                  expensestate.searchMessage,
+                                  style: TextStyle(color: textSecondary),
+                                ),
                               ),
                             ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 6,
+                              bottom: screenHeight * 0.12,
+                            ),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final item = items[index];
+                                  final hour = item.date_time!.hour.toString().padLeft(2, '0');
+                                  final minute = item.date_time!.minute.toString().padLeft(2, '0');
+                                  final day = item.date_time!.day.toString().padLeft(2, '0');
+                                  final month = item.date_time!.month.toString().padLeft(2, '0');
+                                  final year = item.date_time!.year;
 
-                            const SizedBox(height: 6),
-
-                            // List or empty state
-                            Expanded(
-                              child: expensestate.expenseModel.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.shopping_cart_outlined,
-                                            size: 64,
-                                            color: textSecondary.withValues(alpha: 0.4),
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: Dismissible(
+                                      key: Key(item.id),
+                                      direction: DismissDirection.endToStart,
+                                      onDismissed: (direction) {
+                                        context.read<ExpenseBloc>().add(DeleteExpense(item.id));
+                                      },
+                                      background: Container(
+                                        alignment: Alignment.centerRight,
+                                        padding: const EdgeInsets.only(right: 20),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFFFB7185), Color(0xFFE11D48)],
                                           ),
-                                          const SizedBox(height: 12),
-                                          AppText(
-                                            'No expenses recorded yet!',
-                                            color: textSecondary,
-                                            type: TextType.screenTitles,
-                                          ),
-                                        ],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            Icon(Icons.delete_outline_rounded, color: Colors.white),
+                                          ],
+                                        ),
                                       ),
-                                    )
-                                  : expensestate.searchMessage.isNotEmpty
-                                      ? Center(
-                                          child: Text(
-                                            expensestate.searchMessage,
-                                            style: TextStyle(color: textSecondary),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: cardColor,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(alpha: 0.08)
+                                                : Colors.black.withValues(alpha: 0.04),
                                           ),
-                                        )
-                                      : ListView.builder(
-                                          physics: const BouncingScrollPhysics(),
-                                          padding: EdgeInsets.only(
-                                            left: 16,
-                                            right: 16,
-                                            top: 6,
-                                            bottom: screenHeight * 0.12,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isDark
+                                                  ? Colors.black.withValues(alpha: 0.25)
+                                                  : Colors.black.withValues(alpha: 0.03),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 6,
                                           ),
-                                          itemCount: expensestate.filteredExpenseModel.isEmpty
-                                              ? expensestate.expenseModel.length
-                                              : expensestate.filteredExpenseModel.length,
-                                          itemBuilder: (context, index) {
-                                            final item = expensestate.filteredExpenseModel.isEmpty
-                                                ? expensestate.expenseModel[index]
-                                                : expensestate.filteredExpenseModel[index];
-                                            final hour = item.date_time!.hour.toString().padLeft(2, '0');
-                                            final minute = item.date_time!.minute.toString().padLeft(2, '0');
-                                            final day = item.date_time!.day.toString().padLeft(2, '0');
-                                            final month = item.date_time!.month.toString().padLeft(2, '0');
-                                            final year = item.date_time!.year;
-
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 5.0),
-                                              child: Dismissible(
-                                                key: Key(item.id),
-                                                direction: DismissDirection.endToStart,
-                                                onDismissed: (direction) {
-                                                  context.read<ExpenseBloc>().add(DeleteExpense(item.id));
-                                                },
-                                                background: Container(
-                                                  alignment: Alignment.centerRight,
-                                                  padding: const EdgeInsets.only(right: 20),
-                                                  decoration: BoxDecoration(
-                                                    gradient: const LinearGradient(
-                                                      colors: [Color(0xFFFB7185), Color(0xFFE11D48)],
-                                                    ),
-                                                    borderRadius: BorderRadius.circular(20),
+                                          leading: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: expenseColor.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Icon(
+                                              _getExpenseIcon(item.type),
+                                              color: expenseColor,
+                                              size: 22,
+                                            ),
+                                          ),
+                                          title: Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  item.reason.isNotEmpty ? item.reason : item.type.name,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    color: textPrimary,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
-                                                  child: const Row(
-                                                    mainAxisAlignment: MainAxisAlignment.end,
-                                                    children: [
-                                                      Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 8),
-                                                      Icon(Icons.delete_outline_rounded, color: Colors.white),
-                                                    ],
-                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: cardColor,
-                                                    borderRadius: BorderRadius.circular(20),
-                                                    border: Border.all(
-                                                      color: isDark
-                                                          ? Colors.white.withValues(alpha: 0.08)
-                                                          : Colors.black.withValues(alpha: 0.04),
-                                                    ),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: isDark
-                                                            ? Colors.black.withValues(alpha: 0.25)
-                                                            : Colors.black.withValues(alpha: 0.03),
-                                                        blurRadius: 10,
-                                                        offset: const Offset(0, 3),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ListTile(
-                                                    contentPadding: const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 6,
-                                                    ),
-                                                    leading: Container(
-                                                      width: 44,
-                                                      height: 44,
-                                                      decoration: BoxDecoration(
-                                                        color: expenseColor.withValues(alpha: 0.15),
-                                                        borderRadius: BorderRadius.circular(14),
-                                                      ),
-                                                      child: Icon(
-                                                        _getExpenseIcon(item.type),
-                                                        color: expenseColor,
-                                                        size: 22,
-                                                      ),
-                                                    ),
-                                                    title: Row(
-                                                      children: [
-                                                        Flexible(
-                                                          child: Text(
-                                                            item.reason.isNotEmpty ? item.reason : item.type.name,
-                                                            style: GoogleFonts.plusJakartaSans(
-                                                              color: textPrimary,
-                                                              fontSize: 15,
-                                                              fontWeight: FontWeight.w700,
-                                                            ),
-                                                            maxLines: 1,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 8),
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                                          decoration: BoxDecoration(
-                                                            color: expenseColor.withValues(alpha: 0.12),
-                                                            borderRadius: BorderRadius.circular(10),
-                                                          ),
-                                                          child: Text(
-                                                            item.type.name,
-                                                            style: GoogleFonts.plusJakartaSans(
-                                                              color: expenseColor,
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight.w700,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    subtitle: Padding(
-                                                      padding: const EdgeInsets.only(top: 4),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(
-                                                            Icons.access_time_rounded,
-                                                            size: 12,
-                                                            color: textSecondary,
-                                                          ),
-                                                          const SizedBox(width: 4),
-                                                          Text(
-                                                            '$day/$month/$year • $hour:$minute',
-                                                            style: GoogleFonts.plusJakartaSans(
-                                                              color: textSecondary,
-                                                              fontSize: 12,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    trailing: Text(
-                                                      '-Rs. ${item.amount}',
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        color: expenseColor,
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w800,
-                                                        letterSpacing: -0.3,
-                                                      ),
-                                                    ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: expenseColor.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Text(
+                                                  item.type.name,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    color: expenseColor,
+                                                    fontSize: 10.5,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
-                                            );
-                                          },
+                                            ],
+                                          ),
+                                          subtitle: Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.access_time_rounded,
+                                                  size: 12,
+                                                  color: textSecondary,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '$day/$month/$year • $hour:$minute',
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    color: textSecondary,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          trailing: Text(
+                                            '-Rs. ${item.amount}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: expenseColor,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
                                         ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                childCount: items.length,
+                              ),
                             ),
-                          ],
-                        );
-                    }
+                          ),
+                      ],
+                    );
                   },
                 ),
 

@@ -8,6 +8,7 @@ import 'package:spend_wise/viewModel/bloc/income/income_bloc.dart';
 import 'package:spend_wise/viewModel/bloc/theme/theme_bloc.dart';
 
 import '../../config/enum/enum.dart';
+import '../home/header/profile_data_header.dart';
 import 'dialog/add_income_dialog.dart';
 
 class IncomeScreen extends StatefulWidget {
@@ -54,271 +55,285 @@ class _IncomeScreenState extends State<IncomeScreen> {
               children: [
                 BlocBuilder<IncomeBloc, IncomeState>(
                   builder: (context, incomestate) {
-                    switch (incomestate.incomeStatus) {
-                      case IncomeStatus.loading:
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: incomeColor,
+                    if (incomestate.incomeStatus == IncomeStatus.loading) {
+                      return Center(
+                        child: CircularProgressIndicator(color: incomeColor),
+                      );
+                    }
+                    if (incomestate.incomeStatus == IncomeStatus.failure) {
+                      return Center(
+                        child: Text(
+                          incomestate.message.toString(),
+                          style: TextStyle(color: textPrimary),
+                        ),
+                      );
+                    }
+
+                    final items = incomestate.filteredIncomeModel.isEmpty
+                        ? incomestate.incomeModel
+                        : incomestate.filteredIncomeModel;
+
+                    return CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        // Top Balance & Savings Card
+                        const SliverToBoxAdapter(
+                          child: ProfileDataHeader(),
+                        ),
+
+                        // Search Bar
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: cardColor,
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? Colors.black.withValues(alpha: 0.25)
+                                        : Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                ),
+                              ),
+                              child: TextFormField(
+                                controller: _searchController,
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search by source...',
+                                  hintStyle: TextStyle(
+                                    color: textSecondary.withValues(alpha: 0.7),
+                                    fontSize: 14,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: incomeColor,
+                                    size: 20,
+                                  ),
+                                  suffixIcon: _searchController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear_rounded, size: 18),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            context.read<IncomeBloc>().add(SearchItem(''));
+                                            setState(() {});
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  fillColor: Colors.transparent,
+                                ),
+                                onChanged: (filterKey) {
+                                  setState(() {});
+                                  context.read<IncomeBloc>().add(SearchItem(filterKey));
+                                },
+                              ),
+                            ),
                           ),
-                        );
-                      case IncomeStatus.failure:
-                        return Center(
-                          child: Text(
-                            incomestate.message.toString(),
-                            style: TextStyle(color: textPrimary),
+                        ),
+
+                        // Date Filter Chips
+                        SliverToBoxAdapter(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                            child: Row(
+                              children: [
+                                _filterChip(themeState, context, 'All', DateFilter.all, incomestate),
+                                _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, incomestate),
+                                _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, incomestate),
+                                _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, incomestate),
+                                _filterChip(themeState, context, '1 Year', DateFilter.oneYear, incomestate),
+                              ],
+                            ),
                           ),
-                        );
-                      case IncomeStatus.success:
-                        return Column(
-                          children: [
-                            // Search bar
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: cardColor,
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isDark
-                                          ? Colors.black.withValues(alpha: 0.25)
-                                          : Colors.black.withValues(alpha: 0.04),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
+                        ),
+
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 6),
+                        ),
+
+                        // Empty State or List items
+                        if (incomestate.incomeModel.isEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 40.0),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      size: 64,
+                                      color: textSecondary.withValues(alpha: 0.4),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    AppText(
+                                      'No income records found!',
+                                      color: textSecondary,
+                                      type: TextType.screenTitles,
                                     ),
                                   ],
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.06),
-                                  ),
-                                ),
-                                child: TextFormField(
-                                  controller: _searchController,
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Search by source...',
-                                    hintStyle: TextStyle(
-                                      color: textSecondary.withValues(alpha: 0.7),
-                                      fontSize: 14,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search_rounded,
-                                      color: incomeColor,
-                                      size: 20,
-                                    ),
-                                    suffixIcon: _searchController.text.isNotEmpty
-                                        ? IconButton(
-                                            icon: const Icon(Icons.clear_rounded, size: 18),
-                                            onPressed: () {
-                                              _searchController.clear();
-                                              context.read<IncomeBloc>().add(SearchItem(''));
-                                              setState(() {});
-                                            },
-                                          )
-                                        : null,
-                                    border: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                    fillColor: Colors.transparent,
-                                  ),
-                                  onChanged: (filterKey) {
-                                    setState(() {});
-                                    context.read<IncomeBloc>().add(SearchItem(filterKey));
-                                  },
                                 ),
                               ),
                             ),
-
-                            // Filter Chips
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                              child: Row(
-                                children: [
-                                  _filterChip(themeState, context, 'All', DateFilter.all, incomestate),
-                                  _filterChip(themeState, context, '7 Days', DateFilter.sevenDays, incomestate),
-                                  _filterChip(themeState, context, '1 Month', DateFilter.oneMonth, incomestate),
-                                  _filterChip(themeState, context, '3 Months', DateFilter.threeMonths, incomestate),
-                                  _filterChip(themeState, context, '1 Year', DateFilter.oneYear, incomestate),
-                                ],
+                          )
+                        else if (incomestate.searchMessage.isNotEmpty)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 40.0),
+                              child: Center(
+                                child: Text(
+                                  incomestate.searchMessage,
+                                  style: TextStyle(color: textSecondary),
+                                ),
                               ),
                             ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 6,
+                              bottom: screenHeight * 0.12,
+                            ),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final item = items[index];
+                                  final hour = item.date_time!.hour.toString().padLeft(2, '0');
+                                  final minute = item.date_time!.minute.toString().padLeft(2, '0');
+                                  final day = item.date_time!.day.toString().padLeft(2, '0');
+                                  final month = item.date_time!.month.toString().padLeft(2, '0');
+                                  final year = item.date_time!.year;
 
-                            const SizedBox(height: 6),
-
-                            // List or empty state
-                            Expanded(
-                              child: incomestate.incomeModel.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.account_balance_wallet_outlined,
-                                            size: 64,
-                                            color: textSecondary.withValues(alpha: 0.4),
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                                    child: Dismissible(
+                                      key: Key(item.id),
+                                      direction: DismissDirection.endToStart,
+                                      onDismissed: (direction) {
+                                        context.read<IncomeBloc>().add(DeleteIncome(item.id));
+                                      },
+                                      background: Container(
+                                        alignment: Alignment.centerRight,
+                                        padding: const EdgeInsets.only(right: 20),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Colors.transparent, Color(0xFFEF4444)],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
                                           ),
-                                          const SizedBox(height: 12),
-                                          AppText(
-                                            'No income records found!',
-                                            color: textSecondary,
-                                            type: TextType.screenTitles,
-                                          ),
-                                        ],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete_sweep_rounded,
+                                          color: Colors.white,
+                                          size: 26,
+                                        ),
                                       ),
-                                    )
-                                  : incomestate.searchMessage.isNotEmpty
-                                      ? Center(
-                                          child: Text(
-                                            incomestate.searchMessage,
-                                            style: TextStyle(color: textSecondary),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: cardColor,
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: isDark
+                                                  ? Colors.black.withValues(alpha: 0.25)
+                                                  : Colors.black.withValues(alpha: 0.03),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(alpha: 0.08)
+                                                : Colors.black.withValues(alpha: 0.04),
                                           ),
-                                        )
-                                      : ListView.builder(
-                                          physics: const BouncingScrollPhysics(),
-                                          padding: EdgeInsets.only(
-                                            left: 16,
-                                            right: 16,
-                                            top: 6,
-                                            bottom: screenHeight * 0.12,
+                                        ),
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 6,
                                           ),
-                                          itemCount: incomestate.filteredIncomeModel.isEmpty
-                                              ? incomestate.incomeModel.length
-                                              : incomestate.filteredIncomeModel.length,
-                                          itemBuilder: (context, index) {
-                                            final item = incomestate.filteredIncomeModel.isEmpty
-                                                ? incomestate.incomeModel[index]
-                                                : incomestate.filteredIncomeModel[index];
-                                            final hour = item.date_time!.hour.toString().padLeft(2, '0');
-                                            final minute = item.date_time!.minute.toString().padLeft(2, '0');
-                                            final day = item.date_time!.day.toString().padLeft(2, '0');
-                                            final month = item.date_time!.month.toString().padLeft(2, '0');
-                                            final year = item.date_time!.year;
-
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 5.0),
-                                              child: Dismissible(
-                                                key: Key(item.id),
-                                                direction: DismissDirection.endToStart,
-                                                onDismissed: (direction) {
-                                                  context.read<IncomeBloc>().add(DeleteIncome(item.id));
-                                                },
-                                                background: Container(
-                                                  alignment: Alignment.centerRight,
-                                                  padding: const EdgeInsets.only(right: 20),
-                                                  decoration: BoxDecoration(
-                                                    gradient: const LinearGradient(
-                                                      colors: [Color(0xFFFB7185), Color(0xFFE11D48)],
-                                                    ),
-                                                    borderRadius: BorderRadius.circular(20),
-                                                  ),
-                                                  child: const Row(
-                                                    mainAxisAlignment: MainAxisAlignment.end,
-                                                    children: [
-                                                      Text(
-                                                        'Delete',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      SizedBox(width: 8),
-                                                      Icon(Icons.delete_outline_rounded, color: Colors.white),
-                                                    ],
-                                                  ),
-                                                ),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: cardColor,
-                                                    borderRadius: BorderRadius.circular(20),
-                                                    border: Border.all(
-                                                      color: isDark
-                                                          ? Colors.white.withValues(alpha: 0.08)
-                                                          : Colors.black.withValues(alpha: 0.04),
-                                                    ),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: isDark
-                                                            ? Colors.black.withValues(alpha: 0.25)
-                                                            : Colors.black.withValues(alpha: 0.03),
-                                                        blurRadius: 10,
-                                                        offset: const Offset(0, 3),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ListTile(
-                                                    contentPadding: const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 6,
-                                                    ),
-                                                    leading: Container(
-                                                      width: 44,
-                                                      height: 44,
-                                                      decoration: BoxDecoration(
-                                                        color: incomeColor.withValues(alpha: 0.15),
-                                                        borderRadius: BorderRadius.circular(14),
-                                                      ),
-                                                      child: Icon(
-                                                        Icons.arrow_downward_rounded,
-                                                        color: incomeColor,
-                                                        size: 22,
-                                                      ),
-                                                    ),
-                                                    title: Text(
-                                                      item.source.toString(),
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        color: textPrimary,
-                                                        fontSize: 15,
-                                                        fontWeight: FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                    subtitle: Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons.access_time_rounded,
-                                                          size: 12,
-                                                          color: textSecondary,
-                                                        ),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          '$day/$month/$year • $hour:$minute',
-                                                          style: GoogleFonts.plusJakartaSans(
-                                                            color: textSecondary,
-                                                            fontSize: 12,
-                                                            fontWeight: FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    trailing: Text(
-                                                      '+Rs. ${item.amount}',
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        color: incomeColor,
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w800,
-                                                        letterSpacing: -0.3,
-                                                      ),
-                                                    ),
-                                                  ),
+                                          leading: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: incomeColor.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Icon(
+                                              Icons.arrow_downward_rounded,
+                                              color: incomeColor,
+                                              size: 22,
+                                            ),
+                                          ),
+                                          title: Text(
+                                            item.source,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: textPrimary,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          subtitle: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.access_time_rounded,
+                                                size: 13,
+                                                color: textSecondary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '$day/$month/$year • $hour:$minute',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  color: textSecondary,
+                                                  fontSize: 12,
                                                 ),
                                               ),
-                                            );
-                                          },
+                                            ],
+                                          ),
+                                          trailing: Text(
+                                            '+Rs. ${item.amount}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: incomeColor,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
                                         ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                childCount: items.length,
+                              ),
                             ),
-                          ],
-                        );
-                    }
+                          ),
+                      ],
+                    );
                   },
                 ),
 

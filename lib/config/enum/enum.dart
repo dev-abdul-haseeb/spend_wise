@@ -43,6 +43,8 @@ enum loanStatus {
 enum LoanStatusFilter {
   paid,
   unpaid,
+  toGive,
+  toTake,
   all
 }
 

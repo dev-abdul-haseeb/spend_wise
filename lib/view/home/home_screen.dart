@@ -56,21 +56,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: themeState.theme[appColors.appBGColor],
                 body: SafeArea(
                   bottom: false,
-                  child: Column(
-                    children: [
-                      if (navigationState.selectedIndex != 3)
-                        const ProfileDataHeader(),
-                      Expanded(
-                        child: IndexedStack(
-                          index: navigationState.selectedIndex,
-                          children: const [
-                            IncomeScreen(),
-                            ExpenseScreen(),
-                            LoanScreen(),
-                            ProfileScreen(),
-                          ],
-                        ),
-                      ),
+                  child: IndexedStack(
+                    index: navigationState.selectedIndex,
+                    children: const [
+                      IncomeScreen(),
+                      ExpenseScreen(),
+                      LoanScreen(),
+                      ProfileScreen(),
                     ],
                   ),
                 ),
