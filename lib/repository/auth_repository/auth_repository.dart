@@ -38,13 +38,20 @@ class AuthRepository {
 
   Future<(UserModel?, AuthStates)> checkLogin() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      User? user = FirebaseAuth.instance.currentUser;
+      user ??= await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => FirebaseAuth.instance.currentUser,
+          );
       if (user == null) {
         return (null, AuthStates.Unauthenticated);
       }
       UserModel newModel = UserModel(
         uid: user.uid,
-        email: user.email!,
+        email: user.email ?? '',
       );
       return (newModel, AuthStates.Authenticated);
     } catch (e) {

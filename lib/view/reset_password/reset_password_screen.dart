@@ -75,23 +75,80 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         color: themeState.theme[appColors.textPrimaryColor]!,
                         type: TextType.balanceAmount,
                       ),
-                      TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        focusNode: _emailNode,
-                        textCapitalization: TextCapitalization.none,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        validator: _validateEmail,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12))
-                          ),
+                      const SizedBox(height: 24),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: themeState.isDark ? 0.25 : 0.06,
+                              ),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        onChanged: (value) {
-                          context.read<AuthBloc>().add(EmailChanged(email: value));
-                        },
+                        child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          focusNode: _emailNode,
+                          textCapitalization: TextCapitalization.none,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: _validateEmail,
+                          style: TextStyle(
+                            color: themeState.theme[appColors.textPrimaryColor],
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: themeState.theme[appColors.cardColor],
+                            hintText: 'Enter your Email',
+                            hintStyle: TextStyle(
+                              color: themeState.theme[appColors.textSecondaryColor],
+                              fontSize: 14,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: themeState.theme[appColors.primaryColor],
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(Radius.circular(16)),
+                              borderSide: BorderSide(
+                                color: themeState.isDark
+                                    ? Colors.white.withValues(alpha: 0.12)
+                                    : Colors.grey.withValues(alpha: 0.25),
+                                width: 1.2,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(Radius.circular(16)),
+                              borderSide: BorderSide(
+                                color: themeState.theme[appColors.primaryColor]!,
+                                width: 2.0,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(Radius.circular(16)),
+                              borderSide: BorderSide(
+                                color: themeState.theme[appColors.expenseColor]!,
+                                width: 1.5,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(Radius.circular(16)),
+                              borderSide: BorderSide(
+                                color: themeState.theme[appColors.expenseColor]!,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            context.read<AuthBloc>().add(EmailChanged(email: value));
+                          },
+                        ),
                       ),
-                      SizedBox(height: screenHeight*0.02,),
+                      SizedBox(height: screenHeight * 0.02),
                       BlocBuilder<AuthBloc, AuthState>(
                         buildWhen: (previous, current) =>
                         previous.currentState != current.currentState,

@@ -71,11 +71,7 @@ class AppUpdateService {
           );
         }
       } else if (showNoUpdateDialog && context.mounted) {
-        showFlashbar(
-          context,
-          'No releases found on GitHub.',
-          false,
-        );
+        showFlashbar(context, 'No releases found on GitHub.', false);
       }
     } catch (e) {
       if (showNoUpdateDialog && context.mounted) {
@@ -103,8 +99,14 @@ class AppUpdateService {
   /// Returns true if [remote] > [local]
   static bool _isNewerVersion(String remote, String local) {
     try {
-      final remoteParts = remote.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-      final localParts = local.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      final remoteParts = remote
+          .split('.')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
+      final localParts = local
+          .split('.')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
 
       while (remoteParts.length < 3) {
         remoteParts.add(0);
@@ -140,7 +142,8 @@ class AppUpdateService {
             final primary = themeState.theme[appColors.primaryColor]!;
             final cardBg = themeState.theme[appColors.cardColor]!;
             final textPrimary = themeState.theme[appColors.textPrimaryColor]!;
-            final textSecondary = themeState.theme[appColors.textSecondaryColor]!;
+            final textSecondary =
+                themeState.theme[appColors.textSecondaryColor]!;
             final accent = themeState.theme[appColors.accentColor]!;
 
             return AlertDialog(
@@ -159,7 +162,11 @@ class AppUpdateService {
                       color: primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.system_update_rounded, color: primary, size: 28),
+                    child: Icon(
+                      Icons.system_update_rounded,
+                      color: primary,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(

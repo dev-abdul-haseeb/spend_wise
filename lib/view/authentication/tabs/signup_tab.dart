@@ -140,52 +140,97 @@ class _SignupTabState extends State<SignupTab> {
                         builder: (context, obscureState) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12.0),
-                            child: TextFormField(
-                              keyboardType: inputTypes[index],
-                              focusNode: nodes[index],
-                              textCapitalization: capitalizations[index],
-                              obscureText: isPassword ? obscureState.obscureText : false,
-                              // Validate on user interaction
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              validator: (value) => _validatorForIndex(index, value),
-                              scrollPadding: const EdgeInsets.only(bottom: 100),
-                              style: TextStyle(
-                                color: themeState.isDark
-                                    ? themeState.theme[appColors.accentColor]
-                                    : themeState.theme[appColors.textPrimaryColor],
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: themeState.isDark ? 0.25 : 0.06,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              decoration: InputDecoration(
-                                hintText: labels[index],
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(15),
+                              child: TextFormField(
+                                keyboardType: inputTypes[index],
+                                focusNode: nodes[index],
+                                textCapitalization: capitalizations[index],
+                                obscureText: isPassword ? obscureState.obscureText : false,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                                validator: (value) => _validatorForIndex(index, value),
+                                scrollPadding: const EdgeInsets.only(bottom: 100),
+                                style: TextStyle(
+                                  color: themeState.theme[appColors.textPrimaryColor],
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: themeState.theme[appColors.cardColor],
+                                  hintText: labels[index],
+                                  hintStyle: TextStyle(
+                                    color: themeState.theme[appColors.textSecondaryColor],
+                                    fontSize: 14,
+                                  ),
+                                  suffixIcon: isPassword
+                                      ? IconButton(
+                                          icon: Icon(
+                                            obscureState.obscureText
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: themeState.theme[appColors.textSecondaryColor],
+                                          ),
+                                          onPressed: () => context
+                                              .read<ObscureTextBloc>()
+                                              .add(ToggleObscure()),
+                                        )
+                                      : null,
+                                  prefixIcon: AppIcons.appIcon[labels[index]],
+                                  prefixIconColor: themeState.theme[appColors.primaryColor],
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                                    borderSide: BorderSide(
+                                      color: themeState.isDark
+                                          ? Colors.white.withValues(alpha: 0.12)
+                                          : Colors.grey.withValues(alpha: 0.25),
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                                    borderSide: BorderSide(
+                                      color: themeState.theme[appColors.primaryColor]!,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                                    borderSide: BorderSide(
+                                      color: themeState.theme[appColors.expenseColor]!,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                                    borderSide: BorderSide(
+                                      color: themeState.theme[appColors.expenseColor]!,
+                                      width: 2.0,
+                                    ),
                                   ),
                                 ),
-                                suffixIcon: isPassword
-                                    ? IconButton(
-                                        icon: Icon(
-                                          obscureState.obscureText
-                                              ? Icons.visibility_off
-                                              : Icons.visibility,
-                                        ),
-                                        onPressed: () => context
-                                            .read<ObscureTextBloc>()
-                                            .add(ToggleObscure()),
-                                      )
-                                    : null,
-                                prefixIcon: AppIcons.appIcon[labels[index]],
-                                prefixIconColor: themeState.theme[appColors.primaryColor],
+                                onChanged: (newValue) => context
+                                    .read<AuthBloc>()
+                                    .add(_eventForIndex(index, newValue)),
+                                onFieldSubmitted: (_) {
+                                  if (index == nodes.length - 1) {
+                                    FocusScope.of(context).unfocus();
+                                  } else {
+                                    FocusScope.of(context).requestFocus(nodes[index + 1]);
+                                  }
+                                },
                               ),
-                              onChanged: (newValue) => context
-                                  .read<AuthBloc>()
-                                  .add(_eventForIndex(index, newValue)),
-                              onFieldSubmitted: (_) {
-                                if (index == nodes.length - 1) {
-                                  FocusScope.of(context).unfocus();
-                                } else {
-                                  FocusScope.of(context).requestFocus(nodes[index + 1]);
-                                }
-                              },
                             ),
                           );
                         },
