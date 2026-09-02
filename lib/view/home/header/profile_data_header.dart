@@ -21,17 +21,15 @@ class ProfileDataHeader extends StatelessWidget {
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime(now.year + 2),
-      initialDateRange: state.customRange ??
-          DateTimeRange(
-            start: DateTime(now.year, now.month, 1),
-            end: now,
-          ),
+      initialDateRange:
+          state.customRange ??
+          DateTimeRange(start: DateTime(now.year, now.month, 1), end: now),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: Theme.of(context).primaryColor,
-                ),
+            colorScheme: Theme.of(
+              context,
+            ).colorScheme.copyWith(primary: Theme.of(context).primaryColor),
           ),
           child: child!,
         );
@@ -78,7 +76,8 @@ class ProfileDataHeader extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     primaryColor,
-                    Color.lerp(primaryColor, const Color(0xFF7C3AED), 0.6) ?? primaryColor,
+                    Color.lerp(primaryColor, const Color(0xFF7C3AED), 0.6) ??
+                        primaryColor,
                     Color.lerp(primaryColor, accentColor, 0.25) ?? primaryColor,
                   ],
                   begin: Alignment.topLeft,
@@ -102,12 +101,15 @@ class ProfileDataHeader extends StatelessWidget {
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, authState) {
                           final name = authState.userModel.name;
-                          final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+                          final initial = name.isNotEmpty
+                              ? name[0].toUpperCase()
+                              : 'U';
 
                           return ValueListenableBuilder<String?>(
                             valueListenable: ProfilePhotoService.photoNotifier,
                             builder: (context, photoPath, _) {
-                              final hasPhoto = photoPath != null &&
+                              final hasPhoto =
+                                  photoPath != null &&
                                   photoPath.isNotEmpty &&
                                   File(photoPath).existsSync();
 
@@ -122,9 +124,12 @@ class ProfileDataHeader extends StatelessWidget {
                                 ),
                                 child: CircleAvatar(
                                   radius: 20,
-                                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                  backgroundImage:
-                                      hasPhoto ? FileImage(File(photoPath)) : null,
+                                  backgroundColor: Colors.white.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  backgroundImage: hasPhoto
+                                      ? FileImage(File(photoPath))
+                                      : null,
                                   child: !hasPhoto
                                       ? Text(
                                           initial,
@@ -160,7 +165,9 @@ class ProfileDataHeader extends StatelessWidget {
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Rs. ${balanceState.total.toStringAsFixed(0)}',
+                                balanceState.total < 0
+                                    ? '-Rs. ${balanceState.total.abs().toStringAsFixed(0)}'
+                                    : 'Rs. ${balanceState.total.toStringAsFixed(0)}',
                                 style: GoogleFonts.plusJakartaSans(
                                   color: Colors.white,
                                   fontSize: 28,
@@ -173,7 +180,10 @@ class ProfileDataHeader extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
@@ -185,7 +195,11 @@ class ProfileDataHeader extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.calendar_today_rounded, size: 12, color: Colors.white),
+                            const Icon(
+                              Icons.calendar_today_rounded,
+                              size: 12,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               balanceState.filterLabel,
@@ -212,7 +226,9 @@ class ProfileDataHeader extends StatelessWidget {
                         _DateFilterChip(
                           label: 'This Month',
                           icon: Icons.calendar_month_rounded,
-                          isSelected: balanceState.dateFilterType == DateFilterType.thisMonth,
+                          isSelected:
+                              balanceState.dateFilterType ==
+                              DateFilterType.thisMonth,
                           onTap: () {
                             totalBalanceBloc.add(
                               const ChangeDateFilter(
@@ -223,12 +239,16 @@ class ProfileDataHeader extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         _DateFilterChip(
-                          label: balanceState.dateFilterType == DateFilterType.customRange &&
+                          label:
+                              balanceState.dateFilterType ==
+                                      DateFilterType.customRange &&
                                   balanceState.customRange != null
                               ? '${balanceState.customRange!.start.day}/${balanceState.customRange!.start.month} - ${balanceState.customRange!.end.day}/${balanceState.customRange!.end.month}'
                               : 'Custom Range',
                           icon: Icons.date_range_rounded,
-                          isSelected: balanceState.dateFilterType == DateFilterType.customRange,
+                          isSelected:
+                              balanceState.dateFilterType ==
+                              DateFilterType.customRange,
                           onTap: () => _pickCustomRange(
                             context,
                             totalBalanceBloc,
@@ -239,7 +259,9 @@ class ProfileDataHeader extends StatelessWidget {
                         _DateFilterChip(
                           label: 'All Time',
                           icon: Icons.all_inclusive_rounded,
-                          isSelected: balanceState.dateFilterType == DateFilterType.allTime,
+                          isSelected:
+                              balanceState.dateFilterType ==
+                              DateFilterType.allTime,
                           onTap: () {
                             totalBalanceBloc.add(
                               const ChangeDateFilter(
@@ -266,7 +288,8 @@ class ProfileDataHeader extends StatelessWidget {
                       Expanded(
                         child: _StatTile(
                           label: 'Income',
-                          value: 'Rs. ${balanceState.incomeTotal.toStringAsFixed(0)}',
+                          value:
+                              'Rs. ${balanceState.incomeTotal.toStringAsFixed(0)}',
                           icon: Icons.arrow_downward_rounded,
                           iconColor: const Color(0xFF34D399),
                         ),
@@ -280,7 +303,8 @@ class ProfileDataHeader extends StatelessWidget {
                       Expanded(
                         child: _StatTile(
                           label: 'Expenses',
-                          value: 'Rs. ${balanceState.expenseTotal.toStringAsFixed(0)}',
+                          value:
+                              'Rs. ${balanceState.expenseTotal.toStringAsFixed(0)}',
                           icon: Icons.arrow_upward_rounded,
                           iconColor: const Color(0xFFFB7185),
                         ),
@@ -294,9 +318,13 @@ class ProfileDataHeader extends StatelessWidget {
                       Expanded(
                         child: _StatTile(
                           label: 'Savings',
-                          value: 'Rs. ${(balanceState.incomeTotal - balanceState.expenseTotal).toStringAsFixed(0)}',
+                          value:
+                              'Rs. ${(balanceState.incomeTotal - balanceState.expenseTotal).toStringAsFixed(0)}',
                           icon: Icons.savings_outlined,
-                          iconColor: (balanceState.incomeTotal - balanceState.expenseTotal) >= 0
+                          iconColor:
+                              (balanceState.incomeTotal -
+                                      balanceState.expenseTotal) >=
+                                  0
                               ? const Color(0xFF38BDF8)
                               : const Color(0xFFFB7185),
                         ),
@@ -310,7 +338,11 @@ class ProfileDataHeader extends StatelessWidget {
                       Expanded(
                         child: _StatTile(
                           label: 'Loans',
-                          value: 'Rs. ${balanceState.loanTotal.abs().toStringAsFixed(0)}',
+                          value: balanceState.loanTotal == 0
+                              ? 'Rs. 0'
+                              : (balanceState.loanTotal < 0
+                                    ? '-Rs. ${balanceState.loanTotal.abs().toStringAsFixed(0)}'
+                                    : '+Rs. ${balanceState.loanTotal.abs().toStringAsFixed(0)}'),
                           icon: Icons.handshake_outlined,
                           iconColor: const Color(0xFFFBBF24),
                         ),

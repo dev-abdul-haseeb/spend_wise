@@ -361,20 +361,36 @@ class _LoanScreenState extends State<LoanScreen> {
                                                           overflow: TextOverflow.ellipsis,
                                                         ),
                                                       ),
+                                                      if (isPaid) ...[
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                                                          decoration: BoxDecoration(
+                                                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Text(
+                                                            'PAID',
+                                                            style: GoogleFonts.plusJakartaSans(
+                                                              fontSize: 9.5,
+                                                              fontWeight: FontWeight.w800,
+                                                              color: const Color(0xFF10B981),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 5),
+                                                      ],
                                                       Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                                         decoration: BoxDecoration(
-                                                          color: itemColor.withValues(alpha: 0.15),
-                                                          borderRadius: BorderRadius.circular(10),
+                                                          color: (isToTake ? accent : primary).withValues(alpha: 0.15),
+                                                          borderRadius: BorderRadius.circular(8),
                                                         ),
                                                         child: Text(
-                                                          isPaid
-                                                              ? 'PAID'
-                                                              : (isToTake ? 'TO TAKE' : 'TO GIVE'),
+                                                          isToTake ? 'TO TAKE' : 'TO GIVE',
                                                           style: GoogleFonts.plusJakartaSans(
-                                                            fontSize: 10,
+                                                            fontSize: 9.5,
                                                             fontWeight: FontWeight.w800,
-                                                            color: itemColor,
+                                                            color: isToTake ? accent : primary,
                                                           ),
                                                         ),
                                                       ),
@@ -427,11 +443,9 @@ class _LoanScreenState extends State<LoanScreen> {
                                             ),
                                             const SizedBox(width: 10),
                                             Text(
-                                              isPaid
-                                                  ? 'Rs. ${item.amount.abs().toStringAsFixed(0)}'
-                                                  : (isToTake
-                                                      ? '-Rs. ${item.amount.abs().toStringAsFixed(0)}'
-                                                      : '+Rs. ${item.amount.abs().toStringAsFixed(0)}'),
+                                              isToTake
+                                                  ? '-Rs. ${item.amount.abs().toStringAsFixed(0)}'
+                                                  : '+Rs. ${item.amount.abs().toStringAsFixed(0)}',
                                               style: GoogleFonts.plusJakartaSans(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w800,
