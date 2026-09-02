@@ -427,7 +427,11 @@ class _LoanScreenState extends State<LoanScreen> {
                                             ),
                                             const SizedBox(width: 10),
                                             Text(
-                                              'Rs. ${item.amount.abs().toStringAsFixed(0)}',
+                                              isPaid
+                                                  ? 'Rs. ${item.amount.abs().toStringAsFixed(0)}'
+                                                  : (isToGive
+                                                      ? '-Rs. ${item.amount.abs().toStringAsFixed(0)}'
+                                                      : '+Rs. ${item.amount.abs().toStringAsFixed(0)}'),
                                               style: GoogleFonts.plusJakartaSans(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w800,
