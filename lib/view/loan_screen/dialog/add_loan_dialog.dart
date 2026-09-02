@@ -88,7 +88,7 @@ class _AddLoanDialogState extends State<AddLoanDialog> {
     if (_formKey.currentState!.validate()) {
       final double amount = double.parse(_amountController.text.trim());
       final newLoan = LoanModel(
-        amount: widget.take ? (-1 * amount) : amount,
+        amount: widget.take ? amount : (-1 * amount),
         person_name: _sourceController.text.trim(),
         reason: _reasonController.text.trim(),
         date_time: _selectedDate,

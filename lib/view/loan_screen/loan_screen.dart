@@ -244,10 +244,10 @@ class _LoanScreenState extends State<LoanScreen> {
                                   final item = loansToDisplay[index];
                                   final dateTime = item.date_time ?? DateTime.now();
                                   final isPaid = item.status == loanStatus.Paid;
-                                  final isToGive = item.amount < 0;
+                                  final isToTake = item.amount < 0;
                                   final itemColor = isPaid
                                       ? const Color(0xFF10B981)
-                                      : (isToGive ? accent : primary);
+                                      : (isToTake ? accent : primary);
 
                                   return Container(
                                     margin: const EdgeInsets.only(bottom: 10),
@@ -335,7 +335,7 @@ class _LoanScreenState extends State<LoanScreen> {
                                               child: Icon(
                                                 isPaid
                                                     ? Icons.check_circle_rounded
-                                                    : (isToGive
+                                                    : (isToTake
                                                         ? Icons.call_made_rounded
                                                         : Icons.call_received_rounded),
                                                 color: itemColor,
@@ -370,7 +370,7 @@ class _LoanScreenState extends State<LoanScreen> {
                                                         child: Text(
                                                           isPaid
                                                               ? 'PAID'
-                                                              : (isToGive ? 'TO GIVE' : 'TO TAKE'),
+                                                              : (isToTake ? 'TO TAKE' : 'TO GIVE'),
                                                           style: GoogleFonts.plusJakartaSans(
                                                             fontSize: 10,
                                                             fontWeight: FontWeight.w800,
@@ -429,7 +429,7 @@ class _LoanScreenState extends State<LoanScreen> {
                                             Text(
                                               isPaid
                                                   ? 'Rs. ${item.amount.abs().toStringAsFixed(0)}'
-                                                  : (isToGive
+                                                  : (isToTake
                                                       ? '-Rs. ${item.amount.abs().toStringAsFixed(0)}'
                                                       : '+Rs. ${item.amount.abs().toStringAsFixed(0)}'),
                                               style: GoogleFonts.plusJakartaSans(

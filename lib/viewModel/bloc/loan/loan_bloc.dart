@@ -36,10 +36,10 @@ class LoanBloc extends Bloc<LoanEvent, LoanState> {
         result = result.where((element) => element.status == loanStatus.Unpaid).toList();
         break;
       case LoanStatusFilter.toGive:
-        result = result.where((element) => element.amount < 0).toList();
+        result = result.where((element) => element.amount > 0).toList();
         break;
       case LoanStatusFilter.toTake:
-        result = result.where((element) => element.amount > 0).toList();
+        result = result.where((element) => element.amount < 0).toList();
         break;
     }
 
